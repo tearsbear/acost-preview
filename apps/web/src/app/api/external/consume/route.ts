@@ -11,12 +11,18 @@ export async function POST(request: NextRequest) {
   try {
     const apiKey = request.headers.get("x-api-key");
     if (!apiKey) {
-      return NextResponse.json({ error: "Unauthorized: Missing API Key" }, { status: 401 });
+      return NextResponse.json(
+        { error: "Unauthorized: Missing API Key" },
+        { status: 401 },
+      );
     }
 
     const apiKeyRecord = await authenticateApiKey(apiKey);
     if (!apiKeyRecord) {
-      return NextResponse.json({ error: "Unauthorized: Invalid API Key" }, { status: 401 });
+      return NextResponse.json(
+        { error: "Unauthorized: Invalid API Key" },
+        { status: 401 },
+      );
     }
 
     const body = await request.json();
@@ -30,19 +36,31 @@ export async function POST(request: NextRequest) {
       keyId: apiKeyRecord.keyId,
       events: extracted.events,
       validation: {
-        defaultProvider: "openai",
-        defaultModel: "unknown",
-        defaultFeature: "api-ingestion",
+        requireUserId: true,
+        requireProvider: true,
+        requireModel: true,
+        defaultFeature: "external-app",
       },
     });
 
     if (!result.ok) {
-      return NextResponse.json({ error: result.error }, { status: result.status });
+      return NextResponse.json(
+        { error: result.error },
+        { status: result.status },
+      );
     }
 
-    return NextResponse.json({ success: true, count: result.count });
+    return NextResponse.json({
+      success: true,
+      count: result.count,
+      message:
+        "Telemetry consumed successfully. Each event requires userId, provider, and model.",
+    });
   } catch (error: any) {
-    console.error("Telemetry Ingestion Endpoint Error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    console.error("External consume endpoint error:", error);
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }

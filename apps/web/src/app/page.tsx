@@ -17,7 +17,8 @@ export default function Home() {
           </span>
         </h1>
         <p className="text-muted text-lg mb-8 max-w-md mx-auto leading-relaxed">
-          Lightweight, fail-safe SDK and analytical dashboard to monitor model expenses, token consumption, and feature margins.
+          API-first telemetry ingestion and analytical dashboards to monitor
+          model spend, token consumption, and feature-level margins.
         </p>
         <div className="flex justify-center gap-4">
           <Link
@@ -31,6 +32,12 @@ export default function Home() {
             className="button-spring px-6 py-3 bg-surface hover:bg-elevated/40 text-secondary hover:text-primary font-semibold rounded-md text-sm border border-border"
           >
             Create Account
+          </Link>
+          <Link
+            href="/docs"
+            className="button-spring px-6 py-3 bg-surface hover:bg-elevated/40 text-secondary hover:text-primary font-semibold rounded-md text-sm border border-border"
+          >
+            API Docs
           </Link>
         </div>
       </div>

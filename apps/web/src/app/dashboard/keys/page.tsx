@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
 import { createSupabaseBrowserClient } from "@/lib/supabase";
@@ -821,18 +822,26 @@ export default function ApiKeysPage() {
             API Keys
           </h1>
           <p className="text-muted text-sm leading-relaxed max-w-xl">
-            Manage credentials that connect your SDK to the acost telemetry
-            pipeline.
+            Manage credentials that authorize your backend to send telemetry to
+            the acost API base URL.
           </p>
         </div>
-        <button
-          onClick={() => setShowCreateModal(true)}
-          disabled={workspaces.length === 0}
-          className="button-spring flex items-center gap-2 px-4 py-2.5 bg-accent hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed text-canvas font-semibold rounded-md text-sm shadow-md"
-        >
-          <Plus className="w-4 h-4" />
-          Create API Key
-        </button>
+        <div className="flex flex-wrap gap-3">
+          <Link
+            href="/dashboard/onboarding"
+            className="button-spring flex items-center gap-2 px-4 py-2.5 bg-surface hover:bg-elevated/40 border border-border text-secondary hover:text-primary font-semibold rounded-md text-sm"
+          >
+            Open Onboarding
+          </Link>
+          <button
+            onClick={() => setShowCreateModal(true)}
+            disabled={workspaces.length === 0}
+            className="button-spring flex items-center gap-2 px-4 py-2.5 bg-accent hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed text-canvas font-semibold rounded-md text-sm shadow-md"
+          >
+            <Plus className="w-4 h-4" />
+            Create API Key
+          </button>
+        </div>
       </div>
 
       {/* Stats */}
@@ -930,9 +939,15 @@ export default function ApiKeysPage() {
               </p>
               <p className="text-xs text-muted max-w-xs leading-relaxed">
                 Create your first key to start tracking LLM costs from your
-                application.
+                application through the external consume API endpoint.
               </p>
             </div>
+            <Link
+              href="/docs"
+              className="text-xs text-accent hover:underline font-semibold"
+            >
+              Read API docs
+            </Link>
             <button
               onClick={() => setShowCreateModal(true)}
               className="button-spring flex items-center gap-2 px-4 py-2 bg-accent text-canvas text-xs font-semibold rounded-md"

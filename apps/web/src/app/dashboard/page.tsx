@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { CopyCodeBlock } from "@/components/CopyCodeBlock";
 import { RunDetailDrawer } from "./components/RunDetailDrawer";
 import { DashboardSkeleton } from "./components/DashboardSkeleton";
 import {
@@ -22,9 +23,6 @@ import {
   Cpu,
   Clock,
   Layers,
-  Copy,
-  Check,
-  Eye,
   ArrowRight,
 } from "lucide-react";
 
@@ -63,15 +61,15 @@ interface DashboardData {
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [copiedSdk, setCopiedSdk] = useState(false);
-  const [copiedInit, setCopiedInit] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [origin, setOrigin] = useState("https://your-acost-domain.com");
   const [selectedEvent, setSelectedEvent] = useState<
     DashboardData["events"][0] | null
   >(null);
 
   useEffect(() => {
     setMounted(true);
+    setOrigin(window.location.origin);
     fetchDashboardData();
 
     // Refresh dashboard stats every 30 seconds
@@ -90,17 +88,6 @@ export default function DashboardPage() {
       console.error("Failed to load dashboard statistics", err);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const copyText = (text: string, type: "sdk" | "init") => {
-    navigator.clipboard.writeText(text);
-    if (type === "sdk") {
-      setCopiedSdk(true);
-      setTimeout(() => setCopiedSdk(false), 2000);
-    } else {
-      setCopiedInit(true);
-      setTimeout(() => setCopiedInit(false), 2000);
     }
   };
 
@@ -131,22 +118,26 @@ export default function DashboardPage() {
     "var(--border-color)",
   ];
 
-  const sdkInstallCode = `pnpm add acost-sdk`;
-  const sdkInitCode = `import { initAcost, trackOpenAI } from "acost-sdk";
-
-initAcost({
-  apiKey: "YOUR_ACOST_API_KEY", // or set process.env.ACOST_API_KEY
-});
-
-const result = await trackOpenAI({
-  feature: "user-onboarding",
-  userId: "user_98231",
-  completion: async () => {
-    return await openai.chat.completions.create({
+  const baseUrlCode = `ACOST_BASE_URL=${origin}/api/external/consume
+ACOST_API_KEY=acost_your_secret_key`;
+  const requestCode = `await fetch(process.env.ACOST_BASE_URL!, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "x-api-key": process.env.ACOST_API_KEY!,
+  },
+  body: JSON.stringify({
+    event: {
+      userId: "user_98231",
+      provider: "openai",
       model: "gpt-4o-mini",
-      messages: [{ role: "user", content: "Hello!" }],
-    });
-  }
+      feature: "user-onboarding",
+      inputTokens: 900,
+      outputTokens: 240,
+      estimatedCost: 0.00192,
+      latency: 710,
+    },
+  }),
 });`;
 
   return (
@@ -265,51 +256,36 @@ const result = await trackOpenAI({
               Telemetry pipeline awaiting data
             </h2>
             <p className="text-muted text-sm leading-relaxed mb-6 max-w-lg">
-              Your telemetry endpoint is active. Install and integrate our
-              fail-safe, production-ready `acost-sdk` to begin streaming OpenAI
-              metrics directly to this interface.
+              Your telemetry endpoint is active. Connect your backend using the
+              API base URL and workspace key to begin streaming provider, model,
+              token, and cost data into this dashboard.
             </p>
 
             <div className="space-y-4">
-              <div>
-                <div className="flex justify-between items-center text-xs font-semibold text-muted uppercase mb-2">
-                  <span>1. Install package via npm</span>
-                  <button
-                    onClick={() => copyText(sdkInstallCode, "sdk")}
-                    className="button-spring inline-flex items-center gap-1.5 px-2 py-1 rounded bg-canvas border border-border text-muted hover:text-primary"
-                  >
-                    {copiedSdk ? (
-                      <Check className="w-3 h-3 text-accent font-bold" />
-                    ) : (
-                      <Copy className="w-3 h-3" />
-                    )}
-                    <span>Copy</span>
-                  </button>
-                </div>
-                <pre className="p-3 bg-canvas/60 border border-border rounded-md text-xs font-mono text-secondary overflow-x-auto select-all">
-                  {sdkInstallCode}
-                </pre>
-              </div>
+              <CopyCodeBlock
+                title="1. Store your base URL and API key"
+                code={baseUrlCode}
+              />
+              <CopyCodeBlock
+                title="2. Send telemetry from your backend"
+                code={requestCode}
+              />
+            </div>
 
-              <div>
-                <div className="flex justify-between items-center text-xs font-semibold text-muted uppercase mb-2">
-                  <span>2. Wrap completions in your code</span>
-                  <button
-                    onClick={() => copyText(sdkInitCode, "init")}
-                    className="button-spring inline-flex items-center gap-1.5 px-2 py-1 rounded bg-canvas border border-border text-muted hover:text-primary"
-                  >
-                    {copiedInit ? (
-                      <Check className="w-3 h-3 text-accent font-bold" />
-                    ) : (
-                      <Copy className="w-3 h-3" />
-                    )}
-                    <span>Copy</span>
-                  </button>
-                </div>
-                <pre className="p-3 bg-canvas/60 border border-border rounded-md text-xs font-mono text-secondary overflow-x-auto leading-relaxed max-h-56 select-all">
-                  {sdkInitCode}
-                </pre>
-              </div>
+            <div className="flex flex-wrap gap-3 pt-2">
+              <Link
+                href="/dashboard/onboarding"
+                className="button-spring inline-flex items-center gap-2 px-4 py-2 bg-accent hover:opacity-90 text-canvas rounded-md text-sm font-semibold"
+              >
+                <span>Open Onboarding</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+              <Link
+                href="/docs"
+                className="button-spring inline-flex items-center gap-2 px-4 py-2 bg-surface hover:bg-elevated/40 border border-border text-secondary hover:text-primary rounded-md text-sm font-semibold"
+              >
+                <span>Read API Docs</span>
+              </Link>
             </div>
           </div>
 
@@ -319,12 +295,12 @@ const result = await trackOpenAI({
                 Developer Note
               </span>
               <h3 className="text-xl font-display font-semibold text-primary mt-4 mb-2">
-                Silent Failover
+                Integration Notes
               </h3>
               <p className="text-muted text-xs leading-relaxed mb-4">
-                The SDK runs purely off-thread and enqueues requests in a silent
-                background buffer. If our network endpoint drops, the user
-                requests are unaffected, preserving customer UX seamlessly.
+                Send telemetry from your server after your AI request finishes.
+                Keep it asynchronous or push it into a job queue so user-facing
+                latency stays clean and predictable.
               </p>
             </div>
 
@@ -334,7 +310,7 @@ const result = await trackOpenAI({
                   ✓
                 </span>
                 <span className="text-muted">
-                  Zero latency added to user prompts
+                  No SDK or proxy required
                 </span>
               </div>
               <div className="flex gap-3 text-xs">
@@ -342,7 +318,7 @@ const result = await trackOpenAI({
                   ✓
                 </span>
                 <span className="text-muted">
-                  3x Exponential backoff retry handler
+                  Supports single event or batch ingestion
                 </span>
               </div>
               <div className="flex gap-3 text-xs">
@@ -350,7 +326,7 @@ const result = await trackOpenAI({
                   ✓
                 </span>
                 <span className="text-muted">
-                  Batched inserts to prevent backend choke
+                  Works across OpenAI, Anthropic, Gemini, and more
                 </span>
               </div>
             </div>

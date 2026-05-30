@@ -5,9 +5,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase";
 import {
+  BookOpen,
   LayoutDashboard,
   Key,
   LogOut,
+  Route,
   Terminal,
   User,
   ScrollText,
@@ -39,9 +41,11 @@ export default function DashboardLayout({
 
   const navItems = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+    { name: "Onboarding", href: "/dashboard/onboarding", icon: Route },
     { name: "Logs", href: "/dashboard/logs", icon: ScrollText },
     { name: "API Keys", href: "/dashboard/keys", icon: Key },
     { name: "Playground", href: "/dashboard/playground", icon: Terminal },
+    { name: "API Docs", href: "/docs", icon: BookOpen },
   ];
 
   // Mask PII (Email) safely for rendering (Security Guidelines)
