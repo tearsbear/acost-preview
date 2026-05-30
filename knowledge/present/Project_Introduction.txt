@@ -1,0 +1,16 @@
+PROJECT INTRODUCTION: AI COST INTELLIGENCE (ACOST)
+
+1. CONCEPT & PROBLEM
+acost is a "Financial Brain" for AI SaaS founders. It solves the "Founders' Blind Spot" where users only see total API bills without knowing which features or users are draining profits. It provides deep visibility into feature-level costs and profitability.
+
+2. WORKFLOW
+- Integrate: Developers simply change their AI provider's Base URL to acost's proxy endpoint.
+- Ingest: Usage data (tokens, latency, cost) is captured automatically as requests pass through the proxy.
+- Analyze: AI (Claude 3.5 Sonnet) identifies trends and inefficiencies from the captured logs.
+- Optimize: Founders receive actionable recommendations, like switching models or refining prompts to save costs.
+
+3. TRAE USAGE HIGHLIGHTS
+- Builder Mode: Rapidly prototyped the Next.js dashboard and Supabase integration.
+- Context-Aware Refactoring: Effortlessly transformed complex UI components (e.g., Bar to Pie Charts) with natural language.
+- Debugging: Used Trae to verify API responses via internal terminal commands and auto-adjust parsing logic.
+- AI Pairing: Accelerated development by leveraging Trae's deep understanding of the codebase for complex logic implementation.
