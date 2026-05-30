@@ -1,0 +1,23 @@
+{
+  "name": "acost-sdk",
+  "version": "1.0.0",
+  "description": "Fail-safe, lightweight, async-batched OpenAI tracking SDK for acost",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "node dist/verify-pipeline.js"
+  },
+  "peerDependencies": {
+    "openai": "^4.0.0"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0"
+  }
+}

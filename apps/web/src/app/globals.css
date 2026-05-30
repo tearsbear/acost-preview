@@ -1,0 +1,163 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* ========================================================== */
+  /* LIGHT MODE - APPLE MINIMALIST MONOCHROME                   */
+  /* ========================================================== */
+  --bg-canvas: #f5f5f7;              /* Apple signature light gray background */
+  --bg-surface: #ffffff;             /* Pure white card surface */
+  --bg-surface-elevated: #fafafa;    /* Very light gray card elevation */
+  
+  --text-primary: #1d1d1f;           /* Apple deep dark gray */
+  --text-secondary: #515154;         /* Apple slate gray */
+  --text-muted: #86868b;             /* Apple light slate gray */
+  
+  --border-color: #e5e5e7;           /* Apple hairline divider */
+  --border-color-strong: #d2d2d7;    /* Stronger hairline divider */
+  
+  --accent-color: #000000;           /* Pure black main accent */
+  --accent-link: #1d1d1f;            /* Apple secondary dark text */
+  --accent-wash: #e8e8ed;            /* Apple light gray wash */
+  --accent-badge: #d2d2d7;           /* Gray badge background */
+  
+  --success-color: #248a3d;          /* Apple sophisticated green */
+  --shadow-main: 0 1px 3px rgba(0, 0, 0, 0.02), 0 1px 2px rgba(0, 0, 0, 0.04);
+
+  /* Custom typography settings */
+  --font-sans: 'Bricolage Grotesque Variable', 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Bricolage Grotesque Variable', 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif;
+
+  /* Spacing */
+  --spacing-unit: 4px;
+  --spacing-4: 4px;
+  --spacing-8: 8px;
+  --spacing-12: 12px;
+  --spacing-16: 16px;
+  --spacing-20: 20px;
+  --spacing-24: 24px;
+  --spacing-32: 32px;
+  --spacing-40: 40px;
+
+  /* Named Radii */
+  --radius-tags: 24px;
+  --radius-cards: 16px;
+  --radius-images: 12px;
+  --radius-default: 6px;
+
+  /* Premium Animation Curve */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+.dark {
+  /* ========================================================== */
+  /* DARK MODE - APPLE MINIMALIST MONOCHROME DEFAULT            */
+  /* ========================================================== */
+  --bg-canvas: #000000;              /* Apple pure black background */
+  --bg-surface: #161617;             /* Apple dark surface card */
+  --bg-surface-elevated: #222224;    /* Slightly lighter dark surface */
+  
+  --text-primary: #f5f5f7;           /* Apple bright white text */
+  --text-secondary: #a1a1a6;         /* Apple light gray text */
+  --text-muted: #86868b;             /* Apple slate gray text */
+  
+  --border-color: #2c2c2e;           /* Dark gray hairline divider */
+  --border-color-strong: #3a3a3c;    /* Stronger dark hairline divider */
+  
+  --accent-color: #ffffff;           /* Pure white main accent */
+  --accent-link: #f5f5f7;            /* Light gray link */
+  --accent-wash: #1c1c1e;            /* Dark gray wash */
+  --accent-badge: #2c2c2e;           /* Gray badge background */
+  
+  --success-color: #30d158;          /* Apple vibrant dark green */
+  --shadow-main: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-canvas text-primary antialiased font-sans;
+    background-image: none;          /* Pure flat solid monochrome background */
+    background-attachment: fixed;
+    transition: background-color 300ms var(--ease-out), color 300ms var(--ease-out);
+  }
+  ::selection {
+    background-color: var(--accent-wash);
+    color: var(--text-primary);
+  }
+}
+
+/* Custom premium micro-animations */
+.button-spring {
+  transition: transform 160ms var(--ease-out), background-color 160ms var(--ease-out), border-color 160ms var(--ease-out), box-shadow 160ms var(--ease-out);
+}
+
+.button-spring:active {
+  transform: scale(0.97);
+}
+
+/* Fuser Elevated Content Card */
+.fuser-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-cards);
+  padding: 20px;
+  box-shadow: var(--shadow-main);
+  transition: border-color 200ms var(--ease-out), transform 200ms var(--ease-out), background-color 300ms var(--ease-out);
+}
+
+.fuser-card:hover {
+  border-color: var(--border-color-strong);
+}
+
+/* Custom fade-in-up stagger */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  opacity: 0;
+  animation: fadeInUp 400ms var(--ease-out) forwards;
+}
+
+.delay-100 {
+  animation-delay: 100ms;
+}
+
+.delay-200 {
+  animation-delay: 200ms;
+}
+
+.delay-300 {
+  animation-delay: 300ms;
+}
+
+.delay-400 {
+  animation-delay: 400ms;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp 300ms var(--ease-out) forwards;
+}
