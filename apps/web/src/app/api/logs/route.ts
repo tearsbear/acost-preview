@@ -122,15 +122,15 @@ export async function GET(request: NextRequest) {
       .select("model, provider, feature")
       .eq("workspace_id", workspaceId);
 
-    const models = [
-      ...new Set(filterOptions?.map((r) => r.model).filter(Boolean)),
-    ].sort();
-    const providers = [
-      ...new Set(filterOptions?.map((r) => r.provider).filter(Boolean)),
-    ].sort();
-    const features = [
-      ...new Set(filterOptions?.map((r) => r.feature).filter(Boolean)),
-    ].sort();
+    const models = Array.from(
+      new Set(filterOptions?.map((r) => r.model).filter(Boolean))
+    ).sort();
+    const providers = Array.from(
+      new Set(filterOptions?.map((r) => r.provider).filter(Boolean))
+    ).sort();
+    const features = Array.from(
+      new Set(filterOptions?.map((r) => r.feature).filter(Boolean))
+    ).sort();
 
     return NextResponse.json({
       events: events ?? [],
