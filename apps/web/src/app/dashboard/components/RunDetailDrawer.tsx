@@ -14,6 +14,8 @@ import {
   ArrowUpRight,
   ArrowDownLeft,
   Info,
+  Sparkles,
+  RefreshCw,
 } from "lucide-react";
 
 interface DashboardEvent {
@@ -45,6 +47,10 @@ export function RunDetailDrawer({ event, onClose }: RunDetailDrawerProps) {
   const [rawExpanded, setRawExpanded] = useState(true);
   const [isBrowser, setIsBrowser] = useState(false);
 
+  // Recommendation state
+  const [recommendation, setRecommendation] = useState<string | null>(null);
+  const [loadingRecommend, setLoadingRecommend] = useState(false);
+
   // Only enable portal on client
   useEffect(() => {
     setIsBrowser(true);
@@ -55,6 +61,7 @@ export function RunDetailDrawer({ event, onClose }: RunDetailDrawerProps) {
     if (isOpen) {
       setMounted(true);
       setRawExpanded(true);
+      setRecommendation(null); // Reset on open
       document.body.style.overflow = "hidden";
       const raf = requestAnimationFrame(() => {
         requestAnimationFrame(() => setVisible(true));
@@ -66,10 +73,31 @@ export function RunDetailDrawer({ event, onClose }: RunDetailDrawerProps) {
       const t = setTimeout(() => {
         setMounted(false);
         setRawExpanded(true);
+        setRecommendation(null);
       }, 260);
       return () => clearTimeout(t);
     }
   }, [isOpen]);
+
+  const generateRecommendation = async () => {
+    if (!event) return;
+    setLoadingRecommend(true);
+    try {
+      const response = await fetch("/api/logs/recommend", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ logId: event.id }),
+      });
+      const data = await response.json();
+      if (data.recommendation) {
+        setRecommendation(data.recommendation);
+      }
+    } catch (err) {
+      console.error("Failed to generate recommendation", err);
+    } finally {
+      setLoadingRecommend(false);
+    }
+  };
 
   // Escape key listener
   useEffect(() => {
@@ -161,11 +189,57 @@ export function RunDetailDrawer({ event, onClose }: RunDetailDrawerProps) {
           </button>
         </div>
 
-        {/* Scrollable body */}
+          {/* Scrollable body */}
         <div
           className="flex-1 overflow-y-auto"
           style={{ scrollbarGutter: "stable" }}
         >
+          {/* AI Recommendation Section */}
+          <div className="px-6 py-4 border-b border-border bg-gradient-to-br from-accent/5 to-transparent">
+            {!recommendation ? (
+              <button
+                onClick={generateRecommendation}
+                disabled={loadingRecommend}
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-lg border border-accent/20 bg-accent/5 hover:bg-accent/10 transition-colors group disabled:opacity-50"
+              >
+                {loadingRecommend ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin text-accent" />
+                    <span className="text-sm font-semibold text-accent">Analyzing logs...</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4 text-accent group-hover:scale-110 transition-transform" />
+                    <span className="text-sm font-semibold text-accent">Generate AI Recommendation</span>
+                  </>
+                )}
+              </button>
+            ) : (
+              <div className="space-y-3 animate-fade-in">
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-accent" />
+                    <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted">
+                      AI RECOMMENDATION
+                    </h4>
+                  </div>
+                  <button
+                    onClick={generateRecommendation}
+                    disabled={loadingRecommend}
+                    className="text-[10px] font-bold text-accent hover:underline disabled:no-underline"
+                  >
+                    {loadingRecommend ? "Updating..." : "Regenerate"}
+                  </button>
+                </div>
+                <div className="p-4 bg-canvas/40 border border-accent/10 rounded-xl">
+                  <p className="text-sm text-secondary leading-relaxed italic">
+                    "{recommendation}"
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* ── Stats Row ── */}
           <div className="grid grid-cols-2 gap-3 px-6 py-4 border-b border-border">
             {[

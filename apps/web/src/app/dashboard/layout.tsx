@@ -11,6 +11,7 @@ import {
   Terminal,
   User,
   ScrollText,
+  Sparkles,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
@@ -39,6 +40,7 @@ export default function DashboardLayout({
 
   const navItems = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+    { name: "Insights", href: "/dashboard/insights", icon: Sparkles },
     { name: "Logs", href: "/dashboard/logs", icon: ScrollText },
     { name: "API Keys", href: "/dashboard/keys", icon: Key },
     { name: "Playground", href: "/dashboard/playground", icon: Terminal },
