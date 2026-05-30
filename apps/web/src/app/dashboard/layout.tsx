@@ -13,6 +13,7 @@ import {
   Terminal,
   User,
   ScrollText,
+  Sparkles,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
@@ -42,6 +43,7 @@ export default function DashboardLayout({
   const navItems = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "Onboarding", href: "/dashboard/onboarding", icon: Route },
+    { name: "Insights", href: "/dashboard/insights", icon: Sparkles },
     { name: "Logs", href: "/dashboard/logs", icon: ScrollText },
     { name: "API Keys", href: "/dashboard/keys", icon: Key },
     { name: "Playground", href: "/dashboard/playground", icon: Terminal },
@@ -79,11 +81,10 @@ export default function DashboardLayout({
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-3 px-4 py-2.5 rounded-md text-sm font-medium transition-all ${
-                    isActive
+                  className={`flex items-center gap-3 px-4 py-2.5 rounded-md text-sm font-medium transition-all ${isActive
                       ? "bg-accent-wash text-accent font-semibold border border-accent/25"
                       : "text-muted hover:text-primary hover:bg-elevated/40 border border-transparent"
-                  }`}
+                    }`}
                 >
                   <Icon className="w-4 h-4" />
                   {item.name}

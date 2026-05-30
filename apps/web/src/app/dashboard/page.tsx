@@ -13,9 +13,10 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  BarChart,
-  Bar,
+  PieChart,
+  Pie,
   Cell,
+  Legend,
 } from "recharts";
 import {
   Activity,
@@ -24,6 +25,9 @@ import {
   Clock,
   Layers,
   ArrowRight,
+  Sparkles,
+  Zap,
+  RefreshCw,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -58,9 +62,19 @@ interface DashboardData {
   }>;
 }
 
+interface AIInsightsData {
+  summary: string;
+  insights: Array<{ text: string; priority: "high" | "medium" | "low" }>;
+  recommendations: string[];
+}
+
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
+  const [insights, setInsights] = useState<AIInsightsData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadingInsights, setLoadingInsights] = useState(false);
+  const [copiedSdk, setCopiedSdk] = useState(false);
+  const [copiedInit, setCopiedInit] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [origin, setOrigin] = useState("https://your-acost-domain.com");
   const [selectedEvent, setSelectedEvent] = useState<
@@ -71,6 +85,7 @@ export default function DashboardPage() {
     setMounted(true);
     setOrigin(window.location.origin);
     fetchDashboardData();
+    fetchAIInsights();
 
     // Refresh dashboard stats every 30 seconds
     const interval = setInterval(fetchDashboardData, 30000);
@@ -88,6 +103,32 @@ export default function DashboardPage() {
       console.error("Failed to load dashboard statistics", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchAIInsights = async () => {
+    setLoadingInsights(true);
+    try {
+      const response = await fetch("/api/dashboard/insights");
+      const result = await response.json();
+      if (result && !result.error) {
+        setInsights(result);
+      }
+    } catch (err) {
+      console.error("Failed to load AI insights", err);
+    } finally {
+      setLoadingInsights(false);
+    }
+  };
+
+  const copyText = (text: string, type: "sdk" | "init") => {
+    navigator.clipboard.writeText(text);
+    if (type === "sdk") {
+      setCopiedSdk(true);
+      setTimeout(() => setCopiedSdk(false), 2000);
+    } else {
+      setCopiedInit(true);
+      setTimeout(() => setCopiedInit(false), 2000);
     }
   };
 
@@ -231,15 +272,15 @@ ACOST_API_KEY=acost_your_secret_key`;
           <p className="text-3xl font-display font-semibold text-primary tracking-tight">
             {data
               ? formatTokens(
-                  data.summary.inputTokens + data.summary.outputTokens,
-                )
+                data.summary.inputTokens + data.summary.outputTokens,
+              )
               : "0"}
           </p>
           <p className="text-xs text-muted mt-2 font-medium">
             {data
               ? `${formatTokens(data.summary.inputTokens)} in / ${formatTokens(
-                  data.summary.outputTokens,
-                )} out`
+                data.summary.outputTokens,
+              )} out`
               : "0 / 0"}
           </p>
         </div>
@@ -335,6 +376,88 @@ ACOST_API_KEY=acost_your_secret_key`;
       ) : (
         // DASHBOARD WITH REAL STREAMING TELEMETRY DATA
         <div className="space-y-8">
+          {/* AI INSIGHTS PANEL */}
+          <div className="fuser-card bg-gradient-to-br from-surface to-elevated/20 border-accent/20">
+            <div className="flex justify-between items-start mb-6">
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-accent/10 rounded-lg text-accent">
+                  <Sparkles className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-display font-semibold text-primary">
+                    AI Intelligence
+                  </h2>
+                  <p className="text-xs text-muted">
+                    Automated cost analysis and profitability recommendations.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <Link
+                  href="/dashboard/insights"
+                  className="text-[10px] font-bold uppercase tracking-wider text-muted hover:text-primary transition-colors flex items-center gap-1.5"
+                >
+                  View Full Report
+                  <ArrowRight className="w-3 h-3" />
+                </Link>
+                <div className="w-px h-3 bg-border" />
+                <button
+                  onClick={fetchAIInsights}
+                  disabled={loadingInsights}
+                  className="text-[10px] font-bold uppercase tracking-wider text-muted hover:text-accent transition-colors disabled:opacity-50"
+                >
+                  {loadingInsights ? "Analyzing..." : "Regenerate"}
+                </button>
+              </div>
+            </div>
+
+            {loadingInsights && !insights ? (
+              <div className="space-y-4 animate-pulse">
+                <div className="h-4 bg-border/50 rounded w-3/4"></div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="h-24 bg-border/30 rounded-xl"></div>
+                  <div className="h-24 bg-border/30 rounded-xl"></div>
+                  <div className="h-24 bg-border/30 rounded-xl"></div>
+                </div>
+              </div>
+            ) : insights ? (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {insights.insights.slice(0, 3).map((insight, idx) => (
+                  <div
+                    key={idx}
+                    className="p-4 bg-canvas/40 border border-border rounded-xl space-y-3 relative group hover:border-accent/30 transition-all"
+                  >
+                    <div className="flex justify-between items-center">
+                      <div
+                        className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest border ${insight.priority === "high"
+                            ? "bg-red-500/10 text-red-500 border-red-500/20"
+                            : insight.priority === "medium"
+                              ? "bg-amber-500/10 text-amber-500 border-amber-500/20"
+                              : "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                          }`}
+                      >
+                        {insight.priority}
+                      </div>
+                      <span className="text-[10px] font-mono text-muted">
+                        #0{idx + 1}
+                      </span>
+                    </div>
+                    <p className="text-sm text-secondary leading-relaxed group-hover:text-primary transition-colors">
+                      {insight.text}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 border border-dashed border-border rounded-xl">
+                <p className="text-sm text-muted">
+                  No insights generated yet. Click regenerate to analyze your
+                  data.
+                </p>
+              </div>
+            )}
+          </div>
+
           {/* VISUAL CHARTS PANEL */}
           {mounted && data && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -420,72 +543,83 @@ ACOST_API_KEY=acost_your_secret_key`;
                 </div>
               </div>
 
-              {/* Model cost bar chart */}
-              <div className="fuser-card md:col-span-1 min-h-[340px] flex flex-col justify-between">
-                <h2 className="text-[10px] font-bold uppercase tracking-wider text-muted mb-4">
+              {/* Model cost pie chart */}
+              <div className="fuser-card md:col-span-1 min-h-[340px] flex flex-col">
+                <h2 className="text-[10px] font-bold uppercase tracking-wider text-muted mb-6">
                   Model Distribution
                 </h2>
-                <div className="flex-1 w-full min-h-[220px]">
-                  {data.models.length === 0 ? (
-                    <div className="flex items-center justify-center h-full text-muted text-xs">
-                      No distribution metrics yet.
+
+                {data.models.length === 0 ? (
+                  <div className="flex-1 flex items-center justify-center text-muted text-xs">
+                    No distribution metrics yet.
+                  </div>
+                ) : (
+                  <div className="flex-1 flex flex-col justify-between">
+                    <div className="h-[180px] w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={data.models}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={60}
+                            outerRadius={80}
+                            paddingAngle={4}
+                            dataKey="cost"
+                            nameKey="model"
+                            stroke="none"
+                          >
+                            {data.models.map((entry, index) => (
+                              <Cell
+                                key={`cell-${index}`}
+                                fill={BAR_COLORS[index % BAR_COLORS.length]}
+                              />
+                            ))}
+                          </Pie>
+                          <Tooltip
+                            contentStyle={{
+                              background: "var(--bg-surface)",
+                              borderColor: "var(--border-color)",
+                              borderRadius: "6px",
+                            }}
+                            itemStyle={{ fontSize: "12px" }}
+                            formatter={(val: any, name: string) => [
+                              `$${Number(val).toFixed(4)}`,
+                              name,
+                            ]}
+                          />
+                        </PieChart>
+                      </ResponsiveContainer>
                     </div>
-                  ) : (
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart
-                        data={data.models}
-                        margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-                      >
-                        <CartesianGrid
-                          strokeDasharray="3 3"
-                          stroke="var(--border-color-strong)"
-                          opacity={0.1}
-                        />
-                        <XAxis
-                          dataKey="model"
-                          stroke="var(--text-muted)"
-                          fontSize={10}
-                          tickLine={false}
-                        />
-                        <YAxis
-                          stroke="var(--text-muted)"
-                          fontSize={10}
-                          tickLine={false}
-                          tickFormatter={(val) => `$${val}`}
-                        />
-                        <Tooltip
-                          contentStyle={{
-                            background: "var(--bg-surface)",
-                            borderColor: "var(--border-color)",
-                            borderRadius: "6px",
-                          }}
-                          labelStyle={{
-                            color: "var(--text-primary)",
-                            fontWeight: "600",
-                            fontSize: "12px",
-                            marginBottom: "4px",
-                          }}
-                          itemStyle={{
-                            color: "var(--accent-color)",
-                            fontSize: "12px",
-                          }}
-                          formatter={(val: any) => [
-                            `$${Number(val).toFixed(4)}`,
-                            "Cost",
-                          ]}
-                        />
-                        <Bar dataKey="cost" radius={[4, 4, 0, 0]}>
-                          {data.models.map((entry, index) => (
-                            <Cell
-                              key={`cell-${index}`}
-                              fill={BAR_COLORS[index % BAR_COLORS.length]}
-                            />
-                          ))}
-                        </Bar>
-                      </BarChart>
-                    </ResponsiveContainer>
-                  )}
-                </div>
+
+                    {/* Custom List Legend */}
+                    <div className="mt-4 space-y-2 max-h-[120px] overflow-y-auto pr-2 custom-scrollbar">
+                      {data.models
+                        .sort((a, b) => b.cost - a.cost)
+                        .map((entry, index) => {
+                          const totalCost = data.models.reduce((sum, m) => sum + m.cost, 0);
+                          const percentage = ((entry.cost / totalCost) * 100).toFixed(1);
+                          return (
+                            <div key={entry.model} className="flex items-center justify-between group">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <div
+                                  className="w-2 h-2 rounded-full shrink-0"
+                                  style={{ backgroundColor: BAR_COLORS[data.models.indexOf(entry) % BAR_COLORS.length] }}
+                                />
+                                <span className="text-[10px] font-semibold text-secondary truncate uppercase tracking-wider group-hover:text-primary transition-colors">
+                                  {entry.model}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2 shrink-0 ml-2">
+                                <span className="text-[10px] font-mono text-muted">{percentage}%</span>
+                                <span className="text-[10px] font-mono font-bold text-primary">${entry.cost.toFixed(4)}</span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}

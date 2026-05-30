@@ -1,0 +1,99 @@
+import { NextRequest, NextResponse } from "next/server";
+import { createSupabaseServerClient } from "@/lib/supabaseServer";
+
+export const dynamic = "force-dynamic";
+
+export async function POST(request: NextRequest) {
+  try {
+    const supabase = createSupabaseServerClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { logId } = await request.json();
+
+    if (!logId) {
+      return NextResponse.json({ error: "Log ID is required" }, { status: 400 });
+    }
+
+    // Fetch the specific log entry
+    const { data: log, error: logError } = await supabase
+      .from("events")
+      .select("*")
+      .eq("id", logId)
+      .single();
+
+    if (logError || !log) {
+      return NextResponse.json({ error: "Log entry not found" }, { status: 404 });
+    }
+
+    const openaiKey = process.env.OPENAI_API_KEY;
+    if (!openaiKey) {
+      return NextResponse.json({ error: "AI Service unavailable" }, { status: 503 });
+    }
+
+    const prompt = `
+You are an AI Optimization Expert. Analyze this specific AI execution log and provide a concise recommendation for improvement.
+
+LOG DATA:
+Feature: ${log.feature}
+Model: ${log.model}
+Latency: ${log.latency}ms
+Cost: $${log.estimated_cost}
+Input Tokens: ${log.input_tokens}
+Output Tokens: ${log.output_tokens}
+
+PROMPT (INPUT):
+${log.prompt || "N/A"}
+
+RESPONSE (OUTPUT):
+${log.response_content || "N/A"}
+
+GOAL:
+Provide a 2-3 sentence actionable recommendation. Focus on:
+- Prompt engineering improvements (shorter prompt, better instructions).
+- Model switching (could a cheaper model do this?).
+- Latency issues.
+- Cost-saving opportunities.
+
+Return ONLY the recommendation text.
+`;
+
+    const response = await fetch("https://openagentic.id/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${openaiKey}`,
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4.5",
+        messages: [
+          { role: "system", content: "You are a helpful AI optimization assistant." },
+          { role: "user", content: prompt },
+        ],
+      }),
+    });
+
+    const llmResult = await response.json();
+    
+    if (!response.ok) {
+      return NextResponse.json({ error: "AI Provider error" }, { status: 500 });
+    }
+
+    let recommendation = llmResult.choices[0].message.content;
+    
+    // Clean up potential markdown
+    if (recommendation.includes("```")) {
+      recommendation = recommendation.replace(/```[a-z]*\n/g, "").replace(/\n```/g, "").trim();
+    }
+
+    return NextResponse.json({ recommendation });
+  } catch (error: any) {
+    console.error("Log Recommendation Error:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
+}
