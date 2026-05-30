@@ -18,6 +18,7 @@ ACOST_API_KEY=acost_your_secret_key`;
       "provider": "openai",
       "model": "gpt-4o-mini",
       "feature": "chat-answer",
+      "prompt": "Summarize this customer conversation in 3 bullet points.",
       "inputTokens": 1200,
       "outputTokens": 280,
       "estimatedCost": 0.00231,
@@ -40,6 +41,7 @@ await fetch(endpoint, {
       provider: "openai",
       model: "gpt-4o-mini",
       feature: "chat-answer",
+      prompt: "Summarize this customer conversation in 3 bullet points.",
       inputTokens: 1200,
       outputTokens: 280,
       estimatedCost: 0.00231,
@@ -62,6 +64,7 @@ await fetch(endpoint, {
         provider: "openai",
         model: "gpt-4o-mini",
         feature: "chat-answer",
+        prompt: "Summarize this customer conversation in 3 bullet points.",
         inputTokens: 900,
         outputTokens: 240,
         estimatedCost: 0.00192,
@@ -72,6 +75,7 @@ await fetch(endpoint, {
         provider: "anthropic",
         model: "claude-3-5-sonnet",
         feature: "summarizer",
+        prompt: "Summarize the uploaded project brief into executive notes.",
         inputTokens: 1500,
         outputTokens: 420,
         estimatedCost: 0.0062,
@@ -103,18 +107,18 @@ await fetch(endpoint, {
           <div className="flex flex-col items-start sm:items-end gap-3">
             <SkillsGuideActions />
             <div className="flex gap-3">
-            <Link
-              href="/signup"
-              className="button-spring px-5 py-3 bg-accent hover:opacity-90 text-canvas font-semibold rounded-md text-sm shadow-md"
-            >
-              Create Account
-            </Link>
-            <Link
-              href="/dashboard/onboarding"
-              className="button-spring px-5 py-3 bg-surface hover:bg-elevated/40 text-secondary hover:text-primary font-semibold rounded-md text-sm border border-border"
-            >
-              Open Onboarding
-            </Link>
+              <Link
+                href="/signup"
+                className="button-spring px-5 py-3 bg-accent hover:opacity-90 text-canvas font-semibold rounded-md text-sm shadow-md"
+              >
+                Create Account
+              </Link>
+              <Link
+                href="/dashboard/onboarding"
+                className="button-spring px-5 py-3 bg-surface hover:bg-elevated/40 text-secondary hover:text-primary font-semibold rounded-md text-sm border border-border"
+              >
+                Open Onboarding
+              </Link>
             </div>
           </div>
         </div>
@@ -184,8 +188,8 @@ await fetch(endpoint, {
               </h2>
               <p className="text-sm text-muted leading-relaxed">
                 Every event must include `userId`, `provider`, and `model`.
-                `feature` is recommended and defaults to `external-app` if you
-                omit it.
+                `feature` and `prompt` are recommended, and `feature` defaults
+                to `external-app` if you omit it.
               </p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

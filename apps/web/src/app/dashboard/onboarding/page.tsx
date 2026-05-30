@@ -32,6 +32,7 @@ ACOST_API_KEY=acost_your_secret_key`;
       provider: "openai",
       model: "gpt-4o-mini",
       feature: "user-onboarding",
+      prompt: "Create a short onboarding checklist for a new team member.",
       inputTokens: 1100,
       outputTokens: 260,
       estimatedCost: 0.0022,
@@ -53,6 +54,7 @@ ACOST_API_KEY=acost_your_secret_key`;
       provider: llm.provider,
       model: llm.model,
       feature: "chat",
+      prompt: promptText,
       inputTokens: usage.input,
       outputTokens: usage.output,
       estimatedCost: usage.cost,
@@ -195,11 +197,12 @@ ACOST_API_KEY=acost_your_secret_key`;
             </h2>
             <p className="text-sm text-muted leading-relaxed">
               Every telemetry event must include these fields for external app
-              ingestion to be accepted.
+              ingestion to be accepted. Include `prompt` too when you want full
+              request context in the dashboard logs.
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {["userId", "provider", "model", "feature"].map((field) => (
+            {["userId", "provider", "model", "feature", "prompt"].map((field) => (
               <div
                 key={field}
                 className="px-3 py-2 rounded-md border border-border bg-canvas text-xs font-mono text-secondary"
@@ -210,7 +213,8 @@ ACOST_API_KEY=acost_your_secret_key`;
           </div>
           <div className="rounded-md border border-border bg-canvas p-4 text-xs text-muted leading-relaxed">
             `userId`, `provider`, and `model` are required. `feature` is highly
-            recommended for better analytics grouping.
+            recommended for better analytics grouping, and `prompt` is optional
+            but useful when you want richer run logs.
           </div>
           <Link
             href="/docs"

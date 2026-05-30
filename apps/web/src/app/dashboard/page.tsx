@@ -173,6 +173,7 @@ ACOST_API_KEY=acost_your_secret_key`;
       provider: "openai",
       model: "gpt-4o-mini",
       feature: "user-onboarding",
+      prompt: "Create a short onboarding checklist for a new user.",
       inputTokens: 900,
       outputTokens: 240,
       estimatedCost: 0.00192,
@@ -430,10 +431,10 @@ ACOST_API_KEY=acost_your_secret_key`;
                     <div className="flex justify-between items-center">
                       <div
                         className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest border ${insight.priority === "high"
-                            ? "bg-red-500/10 text-red-500 border-red-500/20"
-                            : insight.priority === "medium"
-                              ? "bg-amber-500/10 text-amber-500 border-amber-500/20"
-                              : "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                          ? "bg-red-500/10 text-red-500 border-red-500/20"
+                          : insight.priority === "medium"
+                            ? "bg-amber-500/10 text-amber-500 border-amber-500/20"
+                            : "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
                           }`}
                       >
                         {insight.priority}
