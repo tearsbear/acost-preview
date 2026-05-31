@@ -100,11 +100,6 @@ export function RunDetailDrawer({ event, onClose }: RunDetailDrawerProps) {
 
   if (!isBrowser || !mounted || !event) return null;
 
-  const hasPrompt = event.prompt !== null;
-  const hasResponse = event.response_content !== null;
-  const hasRaw = event.raw_response !== null;
-  const hasAnyDetail = hasPrompt || hasResponse || hasRaw;
-
   const backdropStyle: React.CSSProperties = {
     opacity: visible ? 1 : 0,
     transition: `opacity 200ms ${EASE_OUT}`,
@@ -115,8 +110,8 @@ export function RunDetailDrawer({ event, onClose }: RunDetailDrawerProps) {
     transition: `transform 300ms ${EASE_OUT}`,
   };
 
-  // Helper to format recommendation text with basic markdown
-  const formatRecommendation = (text: string) => {
+  // Helper to format text with basic markdown (bold)
+  const formatText = (text: string | null) => {
     if (!text) return null;
     
     // Split by bold patterns
@@ -129,6 +124,35 @@ export function RunDetailDrawer({ event, onClose }: RunDetailDrawerProps) {
       return part;
     });
   };
+
+  const getDisplayResponse = () => {
+    if (event.response_content && event.response_content.trim().length > 0) {
+      return event.response_content;
+    }
+    
+    // Fallback to raw_response parsing (for reasoning models like DeepSeek or o1)
+    if (event.raw_response && typeof event.raw_response === 'object') {
+      const choices = (event.raw_response as any).choices;
+      if (Array.isArray(choices) && choices.length > 0) {
+        const message = choices[0].message;
+        if (message) {
+          // Priority: content -> reasoning_content
+          return message.content || message.reasoning_content || null;
+        }
+      }
+    }
+    
+    return null;
+  };
+
+  if (!isBrowser || !mounted || !event) return null;
+
+  const displayResponse = getDisplayResponse();
+
+  const hasPrompt = event.prompt !== null;
+  const hasResponse = displayResponse !== null;
+  const hasRaw = event.raw_response !== null;
+  const hasAnyDetail = hasPrompt || hasResponse || hasRaw;
 
   const drawer = (
     <div
@@ -237,7 +261,7 @@ export function RunDetailDrawer({ event, onClose }: RunDetailDrawerProps) {
                 </div>
                 <div className="p-4 bg-canvas/40 border border-accent/10 rounded-xl">
                   <p className="text-sm text-secondary leading-relaxed italic">
-                    &quot;{formatRecommendation(recommendation)}&quot;
+                    &quot;{formatText(recommendation)}&quot;
                   </p>
                 </div>
               </div>
@@ -326,14 +350,14 @@ export function RunDetailDrawer({ event, onClose }: RunDetailDrawerProps) {
           )}
 
           {/* ── Response ── */}
-          {hasResponse && (
+          {displayResponse && (
             <div className="px-6 py-4 border-b border-border">
               <div className="flex items-center gap-1.5 text-[10px] text-muted uppercase font-bold tracking-wider mb-2">
                 <Cpu className="w-3 h-3" />
                 <span>Response</span>
               </div>
               <div className="bg-canvas border border-border rounded-md p-3 text-primary text-sm whitespace-pre-wrap leading-relaxed max-h-[300px] overflow-y-auto">
-                {event.response_content}
+                {formatText(displayResponse)}
               </div>
             </div>
           )}

@@ -59,7 +59,6 @@ app.post("/v1/track", async (c) => {
       keyId: apiKeyRecord.keyId,
       events: extracted.events,
       validation: {
-        defaultProvider: "openai",
         defaultModel: "unknown",
         defaultFeature: "api-ingestion"
       }

@@ -32,13 +32,30 @@ Search the codebase for AI provider SDKs, library imports, or direct HTTP API ca
 ### 2. Implement Surgical Hook (Pro Pattern)
 To ensure 100% reliability without adding latency to your user, use the **Pro Pattern**. This ensures the telemetry is sent even if the main response has already been returned.
 
-#### JavaScript (Next.js / Vercel)
+#### JavaScript (Standard Node.js / Express)
+For long-running servers (not serverless), use a standard non-blocking `void` call. The process won't exit, so the request will complete in the background.
+
+```ts
+// Standard Node.js (Express, Fastify, etc.)
+app.post("/ai-route", async (req, res) => {
+  const response = await openai.call(...);
+  
+  // Non-blocking fire-and-forget
+  fetch(process.env.ACOST_BASE_URL!, {
+    method: "POST",
+    headers: { "x-api-key": process.env.ACOST_API_KEY! },
+    body: JSON.stringify({ event: { ...data } })
+  }).catch(err => console.error(err));
+
+  res.json({ result: response });
+});
+```
+
+#### JavaScript (Serverless / Vercel)
 Leverage `waitUntil` (Next.js 14) or `after` (Next.js 15) to keep the execution environment alive.
 
 ```ts
 import { waitUntil } from "@vercel/functions";
-
-// ... AI call happens ...
 
 waitUntil(
   fetch(process.env.ACOST_BASE_URL!, {
@@ -49,22 +66,21 @@ waitUntil(
 );
 ```
 
-#### Python (FastAPI / Starlette)
-Use `BackgroundTasks` to handle telemetry after the response is sent.
+#### Python (Standard / Flask / Django)
+Use a background thread or a task queue (like Celery) to avoid blocking the main request.
 
 ```python
-from fastapi import BackgroundTasks
+import threading
 
-async def track_telemetry(payload):
-    # standard requests.post call
-    pass
+def send_telemetry(payload):
+    requests.post(url, json=payload, headers=headers)
 
-@app.post("/ai-feature")
-async def ai_route(background_tasks: BackgroundTasks):
-    # ... AI call happens ...
-    background_tasks.add_task(track_telemetry, payload)
-    return {"result": response}
+# Inside your route...
+threading.Thread(target=send_telemetry, args=(payload,)).start()
 ```
+
+#### Python (Async / FastAPI)
+Use `BackgroundTasks` to handle telemetry after the response is sent.
 
 #### Go
 Use a simple goroutine for non-blocking ingestion.
