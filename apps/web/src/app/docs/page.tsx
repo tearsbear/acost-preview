@@ -13,18 +13,23 @@ import {
   Activity, 
   Terminal, 
   CheckCircle2,
-  ChevronRight
+  RefreshCw,
+  ChevronRight,
+  Copy
 } from "lucide-react";
 import { CopyCodeBlock } from "@/components/CopyCodeBlock";
 import { SkillsGuideActions } from "@/components/SkillsGuideActions";
 import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
 import { createSupabaseBrowserClient } from "@/lib/supabase";
 import { User } from "@supabase/supabase-js";
 
 export default function DocsPage() {
   const endpoint = process.env.NEXT_PUBLIC_ACOST_BASE_URL || "https://tracker.your-domain.com/v1/track";
   const [activeTab, setActiveTab] = useState<"curl" | "fetch" | "batch">("curl");
+  const [activeLang, setActiveLang] = useState<"js" | "python" | "go">("js");
   const [user, setUser] = useState<User | null>(null);
+
   const supabase = createSupabaseBrowserClient();
 
   useEffect(() => {
@@ -42,18 +47,17 @@ ACOST_API_KEY=acost_your_secret_key`;
   -d '{
     "event": {
       "userId": "user_123",
-      "provider": "openai",
       "model": "gpt-4o-mini",
       "feature": "chat-answer",
-      "prompt": "Summarize this customer conversation in 3 bullet points.",
+      "prompt": "What is the capital of France?",
+      "responseContent": "The capital of France is Paris.",
       "inputTokens": 1200,
       "outputTokens": 280,
-      "estimatedCost": 0.00231,
       "latency": 842
     }
   }'`;
 
-  const fetchCode = `const endpoint = process.env.ACOST_BASE_URL!;
+  const fetchJSCode = `const endpoint = process.env.ACOST_BASE_URL!;
 const apiKey = process.env.ACOST_API_KEY!;
 
 await fetch(endpoint, {
@@ -65,20 +69,82 @@ await fetch(endpoint, {
   body: JSON.stringify({
     event: {
       userId: "user_123",
-      provider: "openai",
       model: "gpt-4o-mini",
       feature: "chat-answer",
-      prompt: "Summarize this customer conversation in 3 bullet points.",
+      prompt: "What is the capital of France?",
+      responseContent: "The capital of France is Paris.",
       inputTokens: 1200,
       outputTokens: 280,
-      estimatedCost: 0.00231,
       latency: 842,
       createdAt: new Date().toISOString(),
+      // provider: "openrouter" // Optional: defaults to openai/pricetoken
     },
   }),
 });`;
 
-  const batchCode = `await fetch(process.env.ACOST_BASE_URL!, {
+  const fetchPythonCode = `import requests
+import os
+
+endpoint = os.environ.get("ACOST_BASE_URL")
+api_key = os.environ.get("ACOST_API_KEY")
+
+payload = {
+    "event": {
+        "userId": "user_123",
+        "model": "gpt-4o-mini",
+        "feature": "chat-answer",
+        "prompt": "What is the capital of France?",
+        "responseContent": "The capital of France is Paris.",
+        "inputTokens": 1200,
+        "outputTokens": 280,
+        "latency": 842
+    }
+}
+
+response = requests.post(
+    endpoint,
+    json=payload,
+    headers={"x-api-key": api_key}
+)
+print(response.status_code)`;
+
+  const fetchGoCode = `package main
+
+import (
+	"bytes"
+	"encoding/json"
+	"net/http"
+	"os"
+)
+
+func main() {
+	endpoint := os.Getenv("ACOST_BASE_URL")
+	apiKey := os.Getenv("ACOST_API_KEY")
+
+	payload := map[string]interface{}{
+		"event": map[string]interface{}{
+			"userId":          "user_123",
+			"model":           "gpt-4o-mini",
+			"feature":         "chat-answer",
+			"prompt":          "What is the capital of France?",
+			"responseContent": "The capital of France is Paris.",
+			"inputTokens":     1200,
+			"outputTokens":    280,
+			"latency":         842,
+		},
+	}
+
+	jsonPayload, _ := json.Marshal(payload)
+	req, _ := http.NewRequest("POST", endpoint, bytes.NewBuffer(jsonPayload))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("x-api-key", apiKey)
+
+	client := &http.Client{}
+	resp, _ := client.Do(req)
+	defer resp.Body.Close()
+}`;
+
+  const batchJSCode = `await fetch(process.env.ACOST_BASE_URL!, {
   method: "POST",
   headers: {
     "Content-Type": "application/json",
@@ -88,27 +154,113 @@ await fetch(endpoint, {
     events: [
       {
         userId: "user_123",
-        provider: "openai",
         model: "gpt-4o-mini",
         feature: "chat-answer",
+        prompt: "Hello",
+        responseContent: "Hi!",
         inputTokens: 900,
         outputTokens: 240,
-        estimatedCost: 0.00192,
         latency: 710,
       },
       {
         userId: "user_456",
-        provider: "anthropic",
         model: "claude-3-5-sonnet",
         feature: "summarizer",
+        prompt: "Summarize this...",
+        responseContent: "Summary...",
         inputTokens: 1500,
         outputTokens: 420,
-        estimatedCost: 0.0062,
         latency: 1240,
       }
     ],
   }),
 });`;
+
+  const batchPythonCode = `import requests
+import os
+
+endpoint = os.environ.get("ACOST_BASE_URL")
+api_key = os.environ.get("ACOST_API_KEY")
+
+payload = {
+    "events": [
+        {
+            "userId": "user_123",
+            "model": "gpt-4o-mini",
+            "feature": "chat-answer",
+            "prompt": "Hello",
+            "responseContent": "Hi!",
+            "inputTokens": 900,
+            "outputTokens": 240,
+            "latency": 710,
+        },
+        {
+            "userId": "user_456",
+            "model": "claude-3-5-sonnet",
+            "feature": "summarizer",
+            "prompt": "Summarize this...",
+            "responseContent": "Summary...",
+            "inputTokens": 1500,
+            "outputTokens": 420,
+            "latency": 1240,
+        }
+    ]
+}
+
+response = requests.post(
+    endpoint,
+    json=payload,
+    headers={"x-api-key": api_key}
+)
+print(response.status_code)`;
+
+  const batchGoCode = `package main
+
+import (
+	"bytes"
+	"encoding/json"
+	"net/http"
+	"os"
+)
+
+func main() {
+	endpoint := os.Getenv("ACOST_BASE_URL")
+	apiKey := os.Getenv("ACOST_API_KEY")
+
+	payload := map[string]interface{}{
+		"events": []map[string]interface{}{
+			{
+				"userId":          "user_123",
+				"model":           "gpt-4o-mini",
+				"feature":         "chat-answer",
+				"prompt":          "Hello",
+				"responseContent": "Hi!",
+				"inputTokens":     900,
+				"outputTokens":    240,
+				"latency":         710,
+			},
+			{
+				"userId":          "user_456",
+				"model":           "claude-3-5-sonnet",
+				"feature":         "summarizer",
+				"prompt":          "Summarize this...",
+				"responseContent": "Summary...",
+				"inputTokens":     1500,
+				"outputTokens":    420,
+				"latency":         1240,
+			},
+		},
+	}
+
+	jsonPayload, _ := json.Marshal(payload)
+	req, _ := http.NewRequest("POST", endpoint, bytes.NewBuffer(jsonPayload))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("x-api-key", apiKey)
+
+	client := &http.Client{}
+	resp, _ := client.Do(req)
+	defer resp.Body.Close()
+}`;
 
   return (
     <main className="min-h-screen bg-canvas text-primary pb-20">
@@ -122,7 +274,7 @@ await fetch(endpoint, {
               API Documentation
             </div>
             <h1 className="text-5xl font-display font-semibold tracking-tight leading-tight">
-              Ingestion API <br /> Reference.
+              Ingestion API Reference.
             </h1>
             <p className="text-secondary text-base leading-relaxed max-w-xl">
               acost provides a high-performance REST API to track AI costs from any backend environment. No SDK required—just a simple POST request.
@@ -140,37 +292,7 @@ await fetch(endpoint, {
           </div>
         </div>
 
-        {/* ─── Endpoint & Auth ─── */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="fuser-card space-y-4 bg-surface-elevated/50 border-border">
-            <div className="flex items-center gap-2 text-accent">
-              <Send className="w-4 h-4" />
-              <h3 className="text-xs font-bold uppercase tracking-widest">Target Endpoint</h3>
-            </div>
-            <div className="flex items-center gap-3 p-4 bg-canvas border border-border rounded-xl font-mono text-sm overflow-hidden">
-              <span className="px-2 py-0.5 bg-accent text-canvas rounded text-[10px] font-bold shrink-0">POST</span>
-              <code className="text-primary truncate">{endpoint}</code>
-            </div>
-            <p className="text-xs text-secondary leading-relaxed">
-              Use this endpoint to send individual telemetry events or batches.
-            </p>
-          </div>
-
-          <div className="fuser-card space-y-4 bg-surface-elevated/50 border-border">
-            <div className="flex items-center gap-2 text-accent">
-              <KeyRound className="w-4 h-4" />
-              <h3 className="text-xs font-bold uppercase tracking-widest">Authentication</h3>
-            </div>
-            <div className="flex items-center gap-3 p-4 bg-canvas border border-border rounded-xl font-mono text-sm overflow-hidden">
-              <code className="text-secondary italic truncate">x-api-key: acost_your_secret_key</code>
-            </div>
-            <p className="text-xs text-secondary leading-relaxed">
-              Pass your secret API key in the request header. Generate keys in your dashboard settings.
-            </p>
-          </div>
-        </div>
-
-        {/* ─── Environment Setup ─── */}
+       {/* ─── Environment Setup ─── */}
         <section className="fuser-card bg-surface-elevated/50 border-border">
           <div className="flex flex-col md:flex-row gap-8 items-start">
             <div className="max-w-xs space-y-4">
@@ -193,11 +315,126 @@ await fetch(endpoint, {
           </div>
         </section>
 
+        {/* ─── Supported Providers ─── */}
+        <section className="space-y-6">
+          <div className="space-y-2">
+            <h2 className="text-2xl font-display font-semibold tracking-tight">Official Support</h2>
+            <p className="text-secondary text-sm">We provide high-precision tracking for the following providers.</p>
+          </div>
+          <div className="grid grid-cols-4 lg:grid-cols-8 gap-4">
+            {[
+              "OpenAI", "Anthropic", "Google", "OpenRouter", 
+              "xAI", "DeepSeek", "Qwen", "Xiaomi"
+            ].map((p) => (
+              <div key={p} className="fuser-card !p-3 transition-all duration-500 text-center">
+                <div className="w-8 h-8 rounded-xl bg-accent-wash flex items-center justify-center text-accent mb-3 transition-colors duration-500 mx-auto">
+                  {p === "OpenAI" ? (
+                    <>
+                      <img 
+                        src="https://asset.brandfetch.io/idR3duQxYl/idqMspkPnk.svg" 
+                        alt="OpenAI" 
+                        className="w-5 h-5 block dark:hidden transition-all" 
+                      />
+                      <img 
+                        src="https://asset.brandfetch.io/idR3duQxYl/idu144s-jF.svg" 
+                        alt="OpenAI" 
+                        className="w-5 h-5 hidden dark:block transition-all" 
+                      />
+                    </>
+                  ) : p === "Anthropic" ? (
+                    <>
+                      <img 
+                        src="https://asset.brandfetch.io/idmJWF3N06/idQoj8D4ho.svg" 
+                        alt="Anthropic" 
+                        className="w-5 h-5 block dark:hidden transition-all" 
+                      />
+                      <img 
+                        src="https://asset.brandfetch.io/idmJWF3N06/idSuRd_tbF.svg" 
+                        alt="Anthropic" 
+                        className="w-5 h-5 hidden dark:block transition-all" 
+                      />
+                    </>
+                  ) : p === "Google" ? (
+                    <img 
+                      src="https://asset.brandfetch.io/id6O2oGzv-/idTwScErMg.svg" 
+                      alt="Google" 
+                      className="w-5 h-5 transition-all" 
+                    />
+                  ) : p === "OpenRouter" ? (
+                    <img 
+                      src="https://asset.brandfetch.io/idKAk-lYn3/idseLVVQ2o.jpeg" 
+                      alt="OpenRouter" 
+                      className="w-5 h-5 rounded-md transition-all" 
+                    />
+                  ) : p === "xAI" ? (
+                    <>
+                      <img 
+                        src="https://asset.brandfetch.io/iddjpnb3_W/idpeQ1A4Q_.svg" 
+                        alt="xAI" 
+                        className="w-5 h-5 block dark:hidden transition-all" 
+                      />
+                      <img 
+                        src="https://asset.brandfetch.io/iddjpnb3_W/id2cay63L_.svg" 
+                        alt="xAI" 
+                        className="w-5 h-5 hidden dark:block transition-all" 
+                      />
+                    </>
+                  ) : p === "DeepSeek" ? (
+                    <img 
+                      src="https://asset.brandfetch.io/idC_7w82en/idlPpJpfdl.jpeg" 
+                      alt="DeepSeek" 
+                      className="w-5 h-5 rounded-md transition-all" 
+                    />
+                  ) : p === "Qwen" ? (
+                    <img 
+                      src="https://asset.brandfetch.io/idIi0wUGp4/idBvRePqcz.png" 
+                      alt="Qwen" 
+                      className="w-5 h-5 rounded-md transition-all" 
+                    />
+                  ) : p === "Minimax" || p === "Xiaomi" ? (
+                    <img 
+                      src="https://asset.brandfetch.io/idml4symqn/iddkTyjFvQ.jpeg" 
+                      alt="Minimax" 
+                      className="w-5 h-5 rounded-md transition-all" 
+                    />
+                  ) : (
+                    <div className="w-4 h-4 bg-accent/10 rounded-md" />
+                  )}
+                </div>
+                <h3 className="text-[10px] font-display font-bold text-primary truncate uppercase tracking-tight">{p}</h3>
+              </div>
+            ))}
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-4 rounded-xl bg-blue-500/5 border border-blue-500/10 flex items-start gap-3">
+              <RefreshCw className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <p className="text-[10px] font-bold text-blue-600 uppercase">Dual-Source Pricing</p>
+                <p className="text-[11px] text-secondary leading-relaxed">
+                  We track both official rates via <strong>PriceToken.ai</strong> and <strong>OpenRouter</strong> market rates. 
+                  Our engine automatically switches to OpenRouter pricing if <code>provider: "openrouter"</code> is sent.
+                </p>
+              </div>
+            </div>
+            <div className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/10 flex items-start gap-3">
+              <ShieldCheck className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <p className="text-[10px] font-bold text-amber-600 uppercase">Custom Providers</p>
+                <p className="text-[11px] text-secondary leading-relaxed">
+                  You can use any provider, but we recommend sending a manual <code>estimatedCost</code> for unlisted vendors to ensure absolute accuracy.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+   
+
         {/* ─── Payload Schema ─── */}
         <section className="space-y-8">
           <div className="space-y-2">
             <h2 className="text-3xl font-display font-semibold tracking-tight">Request Schema</h2>
-            <p className="text-secondary text-sm">Every event requires three core fields for basic tracking.</p>
+            <p className="text-secondary text-sm">Every event requires the following core fields for precise tracking.</p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -214,13 +451,15 @@ await fetch(endpoint, {
                   <tbody className="divide-y divide-border/40">
                     {[
                       { f: "userId", t: "string", s: "Required", desc: "Unique identifier for your application user." },
-                      { f: "provider", t: "string", s: "Required", desc: "AI provider (openai, anthropic, gemini, etc.)" },
                       { f: "model", t: "string", s: "Required", desc: "Exact model ID used (e.g. gpt-4o)." },
-                      { f: "feature", t: "string", s: "Recommended", desc: "Grouping tag for your product features." },
-                      { f: "inputTokens", t: "number", s: "Optional", desc: "Prompt token count." },
-                      { f: "outputTokens", t: "number", s: "Optional", desc: "Completion token count." },
+                      { f: "feature", t: "string", s: "Required", desc: "Grouping tag for your product features." },
+                      { f: "prompt", t: "string", s: "Required", desc: "The input text sent to the AI model." },
+                      { f: "responseContent", t: "string", s: "Required", desc: "The generated text response from the model." },
+                      { f: "inputTokens", t: "number", s: "Required", desc: "Prompt token count." },
+                      { f: "outputTokens", t: "number", s: "Required", desc: "Completion token count." },
+                      { f: "provider", t: "string", s: "Optional", desc: "AI vendor. Defaults to PriceToken.ai rates if omitted." },
                       { f: "latency", t: "number", s: "Optional", desc: "Request duration in milliseconds." },
-                      { f: "estimatedCost", t: "number", s: "Optional", desc: "Provider cost override." }
+                      { f: "estimatedCost", t: "number", s: "Optional", desc: "Manual cost override. If omitted, acost will calculate this using model metadata." }
                     ].map(row => (
                       <tr key={row.f} className="group hover:bg-canvas/30 transition-colors">
                         <td className="px-6 py-4">
@@ -295,17 +534,16 @@ await fetch(endpoint, {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-accent">
-                <Terminal className="w-5 h-5" />
                 <h2 className="text-3xl font-display font-semibold tracking-tight">Implementation Examples</h2>
               </div>
               <p className="text-secondary text-sm">Ready-to-use snippets for your backend environment.</p>
             </div>
             
-            <div className="flex bg-surface border border-border p-1 rounded-xl shadow-sm">
+            <div className="flex bg-surface border border-border p-1 rounded-xl shadow-sm h-fit">
               {[
                 { id: "curl", label: "cURL" },
-                { id: "fetch", label: "Fetch" },
-                { id: "batch", label: "Batch" }
+                { id: "fetch", label: "Single Event" },
+                { id: "batch", label: "Batch (Bulk)" }
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -322,8 +560,32 @@ await fetch(endpoint, {
             </div>
           </div>
 
-          <div className="fuser-card bg-surface-elevated/50 border-border p-6 shadow-xl">
-            <div className="mb-6">
+          <div className="fuser-card bg-surface-elevated/50 border-border p-6 shadow-xl space-y-6">
+            {activeTab !== "curl" && (
+              <div className="flex justify-center">
+                <div className="flex bg-surface/50 border border-border p-1 rounded-lg w-fit">
+                  {[
+                    { id: "js", label: "JavaScript" },
+                    { id: "python", label: "Python" },
+                    { id: "go", label: "Go" }
+                  ].map((lang) => (
+                    <button
+                      key={lang.id}
+                      onClick={() => setActiveLang(lang.id as any)}
+                      className={`px-4 py-1.5 text-xs font-bold rounded-md transition-all ${
+                        activeLang === lang.id 
+                          ? "bg-accent/10 text-accent shadow-sm" 
+                          : "text-muted hover:text-primary"
+                      }`}
+                    >
+                      {lang.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div>
               {activeTab === "curl" && (
                 <CopyCodeBlock 
                   title="cURL Request" 
@@ -333,16 +595,16 @@ await fetch(endpoint, {
               )}
               {activeTab === "fetch" && (
                 <CopyCodeBlock 
-                  title="Backend fetch()" 
-                  code={fetchCode} 
-                  language="typescript"
+                  title={`${activeLang === 'js' ? 'JavaScript' : activeLang === 'python' ? 'Python' : 'Go'} Ingestion`}
+                  code={activeLang === 'js' ? fetchJSCode : activeLang === 'python' ? fetchPythonCode : fetchGoCode} 
+                  language={activeLang === 'js' ? 'typescript' : activeLang === 'python' ? 'python' : 'go'}
                 />
               )}
               {activeTab === "batch" && (
                 <CopyCodeBlock 
-                  title="Batch ingestion" 
-                  code={batchCode} 
-                  language="typescript"
+                  title={`${activeLang === 'js' ? 'JavaScript' : activeLang === 'python' ? 'Python' : 'Go'} Batch Ingestion`}
+                  code={activeLang === 'js' ? batchJSCode : activeLang === 'python' ? batchPythonCode : batchGoCode} 
+                  language={activeLang === 'js' ? 'typescript' : activeLang === 'python' ? 'python' : 'go'}
                 />
               )}
             </div>
@@ -352,14 +614,8 @@ await fetch(endpoint, {
             </div>
           </div>
         </section>
-
-        <div className="flex justify-center pt-8">
-          <Link href="/dashboard" className="group flex items-center gap-2 text-sm font-bold text-muted hover:text-accent transition-colors">
-            Back to Dashboard
-            <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </Link>
-        </div>
       </div>
+      <Footer />
     </main>
   );
 }

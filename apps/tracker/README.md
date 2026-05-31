@@ -25,8 +25,10 @@ A lightweight, high-performance REST API built with [Hono](https://hono.dev/) fo
   "events": [
     {
       "userId": "user_123",
-      "provider": "openai",
+      "feature": "chat-bot",
       "model": "gpt-4o",
+      "prompt": "Hello world",
+      "responseContent": "Hi there!",
       "inputTokens": 100,
       "outputTokens": 50,
       "latency": 850

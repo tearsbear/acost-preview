@@ -5,7 +5,7 @@ import { Check, Copy } from "lucide-react";
 import { Highlight, themes } from "prism-react-renderer";
 
 interface CopyCodeBlockProps {
-  title: string;
+  title: React.ReactNode;
   code: string;
   language?: string;
   className?: string;
@@ -70,7 +70,7 @@ export function CopyCodeBlock({
           {({ className: highlightClass, style, tokens, getLineProps, getTokenProps }) => (
             <pre 
               className={`${highlightClass} p-4 border border-border rounded-xl text-[13px] font-mono overflow-x-auto leading-relaxed select-all transition-all duration-300
-                !bg-canvas dark:!bg-zinc-950 text-primary dark:text-zinc-100 group-hover:border-border-strong dark:group-hover:border-zinc-700`}
+                bg-zinc-50 dark:bg-zinc-900/50 text-primary dark:text-zinc-100 group-hover:border-accent/30 dark:group-hover:border-accent/20`}
               style={{ ...style, backgroundColor: undefined }}
             >
               {tokens.map((line, i) => (

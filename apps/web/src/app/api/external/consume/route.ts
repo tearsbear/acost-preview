@@ -37,7 +37,6 @@ export async function POST(request: NextRequest) {
       events: extracted.events,
       validation: {
         requireUserId: true,
-        requireProvider: true,
         requireModel: true,
         defaultFeature: "external-app",
       },
@@ -54,7 +53,7 @@ export async function POST(request: NextRequest) {
       success: true,
       count: result.count,
       message:
-        "Telemetry consumed successfully. Each event requires userId, provider, and model, and can optionally include prompt details.",
+        "Telemetry consumed successfully. Each event requires userId, model, feature, prompt, responseContent, inputTokens, and outputTokens.",
     });
   } catch (error: any) {
     console.error("External consume endpoint error:", error);

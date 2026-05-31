@@ -58,6 +58,13 @@ export const PROVIDER_META: Record<string, ProviderMeta> = {
     website: "https://dashscope.console.aliyun.com",
     apiFormat: "openai",
   },
+  minimax: {
+    label: "Minimax",
+    baseUrl: "https://api.minimax.chat/v1",
+    keyPlaceholder: "ey...",
+    website: "https://www.minimaxi.com",
+    apiFormat: "openai",
+  },
   custom: {
     label: "Custom Provider",
     baseUrl: "",
@@ -75,6 +82,7 @@ export const ALLOWED_PROVIDERS = [
   "x-ai",
   "deepseek",
   "qwen",
+  "minimax",
 ] as const;
 
 export type AllowedProvider = (typeof ALLOWED_PROVIDERS)[number];

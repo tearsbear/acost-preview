@@ -29,7 +29,7 @@ export function Navbar({ user, allowRegister = true }: NavbarProps) {
         {/* Center: Navigation Menu */}
         <div className="hidden md:flex items-center gap-8 text-sm font-medium text-secondary">
           <Link href="/#features" className="hover:text-primary transition-colors">Features</Link>
-          <Link href="/#how-it-works" className="hover:text-primary transition-colors">How it works</Link>
+          <Link href="/providers" className="hover:text-primary transition-colors">Providers</Link>
           <Link href="/docs" className="hover:text-primary transition-colors">Documentation</Link>
         </div>
 

@@ -4,18 +4,18 @@ type JsonValue = string | number | boolean | null | {
     [key: string]: JsonValue;
 } | JsonValue[];
 interface TelemetryPayloadEvent {
-    feature?: unknown;
+    feature: unknown;
     model?: unknown;
     provider?: unknown;
-    inputTokens?: unknown;
-    outputTokens?: unknown;
+    inputTokens: unknown;
+    outputTokens: unknown;
     estimatedCost?: unknown;
     latency?: unknown;
     userId?: unknown;
     user?: unknown;
     createdAt?: unknown;
-    prompt?: unknown;
-    responseContent?: unknown;
+    prompt: unknown;
+    responseContent: unknown;
     rawResponse?: unknown;
 }
 interface PreparedTelemetryEvent {
@@ -29,14 +29,13 @@ interface PreparedTelemetryEvent {
     latency: number;
     user_id: string | null;
     created_at: string;
-    prompt: string | null;
-    response_content: string | null;
+    prompt: string;
+    response_content: string;
     raw_response: JsonValue | null;
     ai_recommendation: string | null;
 }
 interface IngestValidationOptions {
     requireUserId?: boolean;
-    requireProvider?: boolean;
     requireModel?: boolean;
     defaultFeature?: string;
     defaultProvider?: string;
@@ -53,11 +52,11 @@ declare function extractEventsFromBody(body: unknown): {
     error: string;
 };
 declare function authenticateApiKey(supabase: SupabaseClient, apiKey: string): Promise<AuthenticatedApiKey | null>;
-declare function prepareEvents(workspaceId: string, events: TelemetryPayloadEvent[], options: IngestValidationOptions): {
+declare function prepareEvents(supabase: SupabaseClient, workspaceId: string, events: TelemetryPayloadEvent[], options: IngestValidationOptions): Promise<{
     dbEvents: PreparedTelemetryEvent[];
 } | {
     error: string;
-};
+}>;
 declare function ingestTelemetryEvents(supabase: SupabaseClient, params: {
     workspaceId: string;
     keyId?: string;

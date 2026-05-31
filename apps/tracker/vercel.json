@@ -1,4 +1,10 @@
 {
+  "crons": [
+    {
+      "path": "/v1/internal/sync-pricing?secret=acost_sync_secret_6d2f8e1a",
+      "schedule": "0 0 * * *"
+    }
+  ],
   "rewrites": [
     {
       "source": "/(.*)",

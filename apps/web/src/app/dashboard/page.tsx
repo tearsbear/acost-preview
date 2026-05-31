@@ -56,8 +56,8 @@ interface DashboardData {
     estimated_cost: number;
     latency: number;
     created_at: string;
-    prompt: string | null;
-    response_content: string | null;
+    prompt: string;
+    response_content: string;
     raw_response: Record<string, unknown> | null;
   }>;
 }
@@ -174,6 +174,7 @@ ACOST_API_KEY=acost_your_secret_key`;
       model: "gpt-4o-mini",
       feature: "user-onboarding",
       prompt: "Create a short onboarding checklist for a new user.",
+      responseContent: "1. Create account\n2. Set up workspace\n3. Connect API keys",
       inputTokens: 900,
       outputTokens: 240,
       estimatedCost: 0.00192,

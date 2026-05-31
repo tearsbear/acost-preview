@@ -1,5 +1,33 @@
 // src/index.ts
 import { createHash } from "crypto";
+var pricingCache = null;
+var lastFetchTime = 0;
+var CACHE_TTL = 1e3 * 60 * 60;
+async function getPricingData(supabase) {
+  const now = Date.now();
+  if (pricingCache && now - lastFetchTime < CACHE_TTL) {
+    return pricingCache;
+  }
+  try {
+    console.log("\u{1F4E1} Fetching model pricing from database...");
+    const { data, error } = await supabase.from("model_pricing").select("model_id, input_price, output_price, source").eq("is_active", true);
+    if (error) throw error;
+    const newCache = {};
+    for (const row of data) {
+      const key = `${row.model_id}:${row.source}`;
+      newCache[key] = {
+        inputPrice: row.input_price,
+        outputPrice: row.output_price
+      };
+    }
+    pricingCache = newCache;
+    lastFetchTime = now;
+    return newCache;
+  } catch (error) {
+    console.error("Database pricing lookup failed:", error);
+    return pricingCache || {};
+  }
+}
 function readNonEmptyString(value) {
   if (typeof value !== "string") {
     return void 0;
@@ -64,41 +92,73 @@ async function authenticateApiKey(supabase, apiKey) {
     keyId: data.id
   };
 }
-function prepareEvents(workspaceId, events, options) {
+async function prepareEvents(supabase, workspaceId, events, options) {
   const maxBatchSize = options.maxBatchSize ?? 100;
   if (events.length > maxBatchSize) {
     return {
       error: `Bad Request: Too many events. Maximum ${maxBatchSize} events per request`
     };
   }
+  const pricing = await getPricingData(supabase);
   const dbEvents = [];
   for (const rawEvent of events) {
-    const feature = readNonEmptyString(rawEvent.feature) ?? options.defaultFeature ?? "external-api";
+    const feature = readNonEmptyString(rawEvent.feature) ?? options.defaultFeature;
+    if (!feature) {
+      return { error: "Bad Request: Each event must include a non-empty 'feature' string" };
+    }
+    const prompt = readNonEmptyString(rawEvent.prompt);
+    if (!prompt) {
+      return { error: "Bad Request: Each event must include a non-empty 'prompt' string" };
+    }
+    const responseContent = readNonEmptyString(rawEvent.responseContent);
+    if (!responseContent) {
+      return {
+        error: "Bad Request: Each event must include a non-empty 'responseContent' string"
+      };
+    }
+    if (rawEvent.inputTokens === void 0 || rawEvent.inputTokens === null) {
+      return { error: "Bad Request: Each event must include 'inputTokens'" };
+    }
+    const inTokens = readNumber(rawEvent.inputTokens);
+    if (rawEvent.outputTokens === void 0 || rawEvent.outputTokens === null) {
+      return { error: "Bad Request: Each event must include 'outputTokens'" };
+    }
+    const outTokens = readNumber(rawEvent.outputTokens);
     const provider = readNonEmptyString(rawEvent.provider) ?? options.defaultProvider;
     const model = readNonEmptyString(rawEvent.model) ?? options.defaultModel;
     const userId = readNonEmptyString(rawEvent.userId) ?? readNonEmptyString(rawEvent.user);
     if (options.requireUserId && !userId) {
       return { error: "Bad Request: Each event must include userId" };
     }
-    if (options.requireProvider && !provider) {
-      return { error: "Bad Request: Each event must include provider" };
-    }
     if (options.requireModel && !model) {
       return { error: "Bad Request: Each event must include model" };
+    }
+    let estimatedCost = readNumber(rawEvent.estimatedCost);
+    if (estimatedCost === 0 && model) {
+      const providerLower = provider?.toLowerCase();
+      const pricingSource = providerLower === "openrouter" ? "openrouter" : "pricetoken";
+      let normalizedModel = model.toLowerCase();
+      if (providerLower && normalizedModel.startsWith(`${providerLower}/`)) {
+        normalizedModel = normalizedModel.replace(`${providerLower}/`, "");
+      }
+      const modelPricing = pricing[`${normalizedModel}:${pricingSource}`];
+      if (modelPricing) {
+        estimatedCost = inTokens * modelPricing.inputPrice + outTokens * modelPricing.outputPrice;
+      }
     }
     dbEvents.push({
       workspace_id: workspaceId,
       feature,
       model: model ?? "unknown",
       provider: provider ?? "openai",
-      input_tokens: readNumber(rawEvent.inputTokens),
-      output_tokens: readNumber(rawEvent.outputTokens),
-      estimated_cost: readNumber(rawEvent.estimatedCost),
+      input_tokens: inTokens,
+      output_tokens: outTokens,
+      estimated_cost: estimatedCost,
       latency: readNumber(rawEvent.latency),
       user_id: userId ?? null,
       created_at: readCreatedAt(rawEvent.createdAt),
-      prompt: readNonEmptyString(rawEvent.prompt) ?? null,
-      response_content: readNonEmptyString(rawEvent.responseContent) ?? null,
+      prompt,
+      response_content: responseContent,
       raw_response: toJsonValue(rawEvent.rawResponse),
       ai_recommendation: null
     });
@@ -107,7 +167,7 @@ function prepareEvents(workspaceId, events, options) {
 }
 async function ingestTelemetryEvents(supabase, params) {
   const validation = params.validation ?? {};
-  const prepared = prepareEvents(params.workspaceId, params.events, validation);
+  const prepared = await prepareEvents(supabase, params.workspaceId, params.events, validation);
   if ("error" in prepared) {
     return { ok: false, status: 400, error: prepared.error };
   }

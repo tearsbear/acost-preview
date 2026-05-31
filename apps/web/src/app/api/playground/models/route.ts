@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { fetchOpenRouterModels } from "@/lib/ai-models/fetch";
+import { fetchPriceTokenModels } from "@/lib/ai-models/fetch";
 import { FALLBACK_MODELS } from "@/config/fallback-models";
 import { PROVIDER_META, ALLOWED_PROVIDERS } from "@/lib/ai-models/provider-metadata";
 import type { ProviderGroup, ModelsApiResponse } from "@/types/ai-model";
@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const models = await fetchOpenRouterModels();
+    const models = await fetchPriceTokenModels();
     
     // Group models by provider
     const groups: ProviderGroup[] = ALLOWED_PROVIDERS.map((provider) => {
@@ -27,12 +27,12 @@ export async function GET() {
     const response: ModelsApiResponse = {
       providers: groups,
       cachedAt: new Date().toISOString(),
-      source: "openrouter",
+      source: "pricetoken",
     };
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error("Failed to fetch dynamic models from OpenRouter, falling back to static list:", error);
+    console.error("Failed to fetch dynamic models from PriceToken, falling back to static list:", error);
     
     // Fall back to static models
     const groups: ProviderGroup[] = ALLOWED_PROVIDERS.map((provider) => {

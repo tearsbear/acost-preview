@@ -8,6 +8,7 @@ import {
   ingestTelemetryEvents,
   extractEventsFromBody,
 } from "@acost/telemetry";
+import { runPricingSync } from "@acost/pricing";
 
 const app = new Hono();
 
@@ -16,6 +17,32 @@ app.use("*", cors());
 
 // Health check
 app.get("/", (c) => c.text("Tracker API is running"));
+
+// Internal Sync Endpoint
+app.on(["GET", "POST"], "/v1/internal/sync-pricing", async (c) => {
+  const secret = c.req.header("x-internal-secret") || c.req.query("secret");
+  const expectedSecret = process.env.INTERNAL_SYNC_SECRET;
+
+  if (!expectedSecret || secret !== expectedSecret) {
+    return c.json({ error: "Unauthorized" }, 401);
+  }
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !supabaseServiceRoleKey) {
+    return c.json({ error: "Missing Supabase configuration" }, 500);
+  }
+
+  const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
+  const result = await runPricingSync(supabase);
+
+  if (result.success) {
+    return c.json({ success: true, count: result.count });
+  } else {
+    return c.json({ error: result.error }, 500);
+  }
+});
 
 app.post("/v1/track", async (c) => {
   try {

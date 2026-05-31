@@ -1,5 +1,5 @@
 import { createHash } from "crypto";
-import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import { SupabaseClient } from "@supabase/supabase-js";
 
 export type JsonValue =
   | string
@@ -10,18 +10,18 @@ export type JsonValue =
   | JsonValue[];
 
 export interface TelemetryPayloadEvent {
-  feature?: unknown;
+  feature: unknown;
   model?: unknown;
   provider?: unknown;
-  inputTokens?: unknown;
-  outputTokens?: unknown;
+  inputTokens: unknown;
+  outputTokens: unknown;
   estimatedCost?: unknown;
   latency?: unknown;
   userId?: unknown;
   user?: unknown;
   createdAt?: unknown;
-  prompt?: unknown;
-  responseContent?: unknown;
+  prompt: unknown;
+  responseContent: unknown;
   rawResponse?: unknown;
 }
 
@@ -36,15 +36,14 @@ export interface PreparedTelemetryEvent {
   latency: number;
   user_id: string | null;
   created_at: string;
-  prompt: string | null;
-  response_content: string | null;
+  prompt: string;
+  response_content: string;
   raw_response: JsonValue | null;
   ai_recommendation: string | null;
 }
 
 export interface IngestValidationOptions {
   requireUserId?: boolean;
-  requireProvider?: boolean;
   requireModel?: boolean;
   defaultFeature?: string;
   defaultProvider?: string;
@@ -55,6 +54,50 @@ export interface IngestValidationOptions {
 export interface AuthenticatedApiKey {
   workspaceId: string;
   keyId: string;
+}
+
+interface ModelPricing {
+  inputPrice: number;
+  outputPrice: number;
+}
+
+// In-memory cache for pricing data
+let pricingCache: Record<string, ModelPricing> | null = null;
+let lastFetchTime = 0;
+const CACHE_TTL = 1000 * 60 * 60; // 1 hour
+
+async function getPricingData(supabase: SupabaseClient): Promise<Record<string, ModelPricing>> {
+  const now = Date.now();
+  if (pricingCache && now - lastFetchTime < CACHE_TTL) {
+    return pricingCache;
+  }
+
+  try {
+    console.log("📡 Fetching model pricing from database...");
+    const { data, error } = await supabase
+      .from("model_pricing")
+      .select("model_id, input_price, output_price, source")
+      .eq("is_active", true);
+
+    if (error) throw error;
+
+    const newCache: Record<string, ModelPricing> = {};
+    for (const row of data) {
+      // Key format: "model_id:source"
+      const key = `${row.model_id}:${row.source}`;
+      newCache[key] = {
+        inputPrice: row.input_price,
+        outputPrice: row.output_price,
+      };
+    }
+
+    pricingCache = newCache;
+    lastFetchTime = now;
+    return newCache;
+  } catch (error) {
+    console.error("Database pricing lookup failed:", error);
+    return pricingCache || {};
+  }
 }
 
 function readNonEmptyString(value: unknown): string | undefined {
@@ -149,13 +192,12 @@ export async function authenticateApiKey(
   };
 }
 
-export function prepareEvents(
+export async function prepareEvents(
+  supabase: SupabaseClient,
   workspaceId: string,
   events: TelemetryPayloadEvent[],
   options: IngestValidationOptions,
-):
-  | { dbEvents: PreparedTelemetryEvent[] }
-  | { error: string } {
+): Promise<{ dbEvents: PreparedTelemetryEvent[] } | { error: string }> {
   const maxBatchSize = options.maxBatchSize ?? 100;
   if (events.length > maxBatchSize) {
     return {
@@ -163,11 +205,37 @@ export function prepareEvents(
     };
   }
 
+  const pricing = await getPricingData(supabase);
   const dbEvents: PreparedTelemetryEvent[] = [];
 
   for (const rawEvent of events) {
-    const feature =
-      readNonEmptyString(rawEvent.feature) ?? options.defaultFeature ?? "external-api";
+    const feature = readNonEmptyString(rawEvent.feature) ?? options.defaultFeature;
+    if (!feature) {
+      return { error: "Bad Request: Each event must include a non-empty 'feature' string" };
+    }
+
+    const prompt = readNonEmptyString(rawEvent.prompt);
+    if (!prompt) {
+      return { error: "Bad Request: Each event must include a non-empty 'prompt' string" };
+    }
+
+    const responseContent = readNonEmptyString(rawEvent.responseContent);
+    if (!responseContent) {
+      return {
+        error: "Bad Request: Each event must include a non-empty 'responseContent' string",
+      };
+    }
+
+    if (rawEvent.inputTokens === undefined || rawEvent.inputTokens === null) {
+      return { error: "Bad Request: Each event must include 'inputTokens'" };
+    }
+    const inTokens = readNumber(rawEvent.inputTokens);
+
+    if (rawEvent.outputTokens === undefined || rawEvent.outputTokens === null) {
+      return { error: "Bad Request: Each event must include 'outputTokens'" };
+    }
+    const outTokens = readNumber(rawEvent.outputTokens);
+
     const provider = readNonEmptyString(rawEvent.provider) ?? options.defaultProvider;
     const model = readNonEmptyString(rawEvent.model) ?? options.defaultModel;
     const userId =
@@ -177,12 +245,29 @@ export function prepareEvents(
       return { error: "Bad Request: Each event must include userId" };
     }
 
-    if (options.requireProvider && !provider) {
-      return { error: "Bad Request: Each event must include provider" };
-    }
-
     if (options.requireModel && !model) {
       return { error: "Bad Request: Each event must include model" };
+    }
+
+    let estimatedCost = readNumber(rawEvent.estimatedCost);
+
+    // Automatic cost calculation fallback
+    if (estimatedCost === 0 && model) {
+      // Determine pricing source: default to pricetoken unless provider is explicitly openrouter
+      const providerLower = provider?.toLowerCase();
+      const pricingSource = providerLower === "openrouter" ? "openrouter" : "pricetoken";
+
+      // Normalize model ID for lookup (strip provider prefix if present)
+      let normalizedModel = model.toLowerCase();
+      if (providerLower && normalizedModel.startsWith(`${providerLower}/`)) {
+        normalizedModel = normalizedModel.replace(`${providerLower}/`, "");
+      }
+
+      const modelPricing = pricing[`${normalizedModel}:${pricingSource}`];
+
+      if (modelPricing) {
+        estimatedCost = inTokens * modelPricing.inputPrice + outTokens * modelPricing.outputPrice;
+      }
     }
 
     dbEvents.push({
@@ -190,14 +275,14 @@ export function prepareEvents(
       feature,
       model: model ?? "unknown",
       provider: provider ?? "openai",
-      input_tokens: readNumber(rawEvent.inputTokens),
-      output_tokens: readNumber(rawEvent.outputTokens),
-      estimated_cost: readNumber(rawEvent.estimatedCost),
+      input_tokens: inTokens,
+      output_tokens: outTokens,
+      estimated_cost: estimatedCost,
       latency: readNumber(rawEvent.latency),
       user_id: userId ?? null,
       created_at: readCreatedAt(rawEvent.createdAt),
-      prompt: readNonEmptyString(rawEvent.prompt) ?? null,
-      response_content: readNonEmptyString(rawEvent.responseContent) ?? null,
+      prompt,
+      response_content: responseContent,
       raw_response: toJsonValue(rawEvent.rawResponse),
       ai_recommendation: null,
     });
@@ -216,7 +301,7 @@ export async function ingestTelemetryEvents(
   }
 ) {
   const validation = params.validation ?? {};
-  const prepared = prepareEvents(params.workspaceId, params.events, validation);
+  const prepared = await prepareEvents(supabase, params.workspaceId, params.events, validation);
 
   if ("error" in prepared) {
     return { ok: false as const, status: 400, error: prepared.error };

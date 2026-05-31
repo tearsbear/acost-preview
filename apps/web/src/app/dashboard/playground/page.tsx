@@ -430,10 +430,9 @@ export default function PlaygroundPage() {
               estimatedCost: params.cost,
               latency: params.latency,
               createdAt: new Date().toISOString(),
-              ...(params.prompt !== undefined && { prompt: params.prompt }),
-              ...(params.responseContent !== undefined && {
-                responseContent: params.responseContent,
-              }),
+              prompt: params.prompt || "(no prompt provided)",
+              responseContent:
+                params.responseContent || "(no response content provided)",
               ...(params.rawResponse !== undefined && {
                 rawResponse: params.rawResponse,
               }),

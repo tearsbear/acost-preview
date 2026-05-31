@@ -2,15 +2,36 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { serve } from "@hono/node-server";
+import { handle } from "hono/vercel";
 import { createClient } from "@supabase/supabase-js";
 import {
   authenticateApiKey,
   ingestTelemetryEvents,
   extractEventsFromBody
 } from "@acost/telemetry";
+import { runPricingSync } from "@acost/pricing";
 var app = new Hono();
 app.use("*", cors());
 app.get("/", (c) => c.text("Tracker API is running"));
+app.post("/v1/internal/sync-pricing", async (c) => {
+  const secret = c.req.header("x-internal-secret");
+  const expectedSecret = process.env.INTERNAL_SYNC_SECRET;
+  if (!expectedSecret || secret !== expectedSecret) {
+    return c.json({ error: "Unauthorized" }, 401);
+  }
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !supabaseServiceRoleKey) {
+    return c.json({ error: "Missing Supabase configuration" }, 500);
+  }
+  const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
+  const result = await runPricingSync(supabase);
+  if (result.success) {
+    return c.json({ success: true, count: result.count });
+  } else {
+    return c.json({ error: result.error }, 500);
+  }
+});
 app.post("/v1/track", async (c) => {
   try {
     const apiKey = c.req.header("x-api-key");
@@ -53,6 +74,12 @@ app.post("/v1/track", async (c) => {
   }
 });
 var index_default = app;
+var GET = handle(app);
+var POST = handle(app);
+var PUT = handle(app);
+var DELETE = handle(app);
+var PATCH = handle(app);
+var OPTIONS = handle(app);
 if (process.env.NODE_ENV !== "production") {
   const port = 3001;
   console.log(`Tracker API is running on http://localhost:${port}`);
@@ -62,5 +89,11 @@ if (process.env.NODE_ENV !== "production") {
   });
 }
 export {
+  DELETE,
+  GET,
+  OPTIONS,
+  PATCH,
+  POST,
+  PUT,
   index_default as default
 };
