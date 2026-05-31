@@ -39,18 +39,44 @@ export function RunDetailDrawer({ event, onClose }: RunDetailDrawerProps) {
     event?.ai_recommendation || null,
   );
   const [loadingRecommend, setLoadingRecommend] = useState(false);
+  const [syncingRecommendation, setSyncingRecommendation] = useState(false);
 
   // Only enable portal on client
   useEffect(() => {
     setIsBrowser(true);
   }, []);
 
+  const syncRecommendation = async (id: string) => {
+    try {
+      setSyncingRecommendation(true);
+      const res = await fetch(`/api/logs/${id}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.ai_recommendation) {
+          setRecommendation(data.ai_recommendation);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to sync recommendation", err);
+    } finally {
+      setSyncingRecommendation(false);
+    }
+  };
+
   // Mount/unmount with animation timing — same double-RAF pattern as ResultsModal
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && event) {
       setMounted(true);
       setRawExpanded(true);
-      setRecommendation(event?.ai_recommendation || null); // Initialize with saved recommendation
+      
+      // Initialize with prop value
+      setRecommendation(event.ai_recommendation || null);
+      
+      // If no recommendation in prop, check server for latest
+      if (!event.ai_recommendation) {
+        syncRecommendation(event.id);
+      }
+
       document.body.style.overflow = "hidden";
       const raf = requestAnimationFrame(() => {
         requestAnimationFrame(() => setVisible(true));
@@ -224,7 +250,12 @@ export function RunDetailDrawer({ event, onClose }: RunDetailDrawerProps) {
         >
           {/* AI Recommendation Section */}
           <div className="px-6 py-4 border-b border-border bg-gradient-to-br from-accent/5 to-transparent">
-            {!recommendation ? (
+            {syncingRecommendation ? (
+              <div className="flex items-center justify-center py-4 gap-2 text-muted">
+                <RefreshCw className="w-4 h-4 animate-spin text-accent" />
+                <span className="text-xs font-semibold">Checking for recommendation...</span>
+              </div>
+            ) : !recommendation ? (
               <button
                 onClick={generateRecommendation}
                 disabled={loadingRecommend}
