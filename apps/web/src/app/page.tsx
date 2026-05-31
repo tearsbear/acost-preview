@@ -2,325 +2,296 @@ import Link from "next/link";
 import {
   Activity,
   ArrowRight,
-  BarChart3,
-  BookOpen,
-  Cpu,
   KeyRound,
-  Route,
-  ShieldCheck,
+  Zap,
+  LineChart,
+  PieChart,
+  Shield,
+  Layers,
 } from "lucide-react";
+import { createSupabaseServerClient } from "@/lib/supabaseServer";
+import DotGrid from "@/components/DotGrid";
+import { Navbar } from "@/components/Navbar";
 
-export default function Home() {
-  const featureCards = [
-    {
-      icon: Activity,
-      title: "Track every AI request",
-      description:
-        "Capture provider, model, tokens, cost, latency, and feature-level usage from your backend.",
-    },
-    {
-      icon: BarChart3,
-      title: "See cost analytics clearly",
-      description:
-        "Understand total spend, request volume, model distribution, and recent telemetry in one dashboard.",
-    },
-    {
-      icon: KeyRound,
-      title: "Use simple API keys",
-      description:
-        "Generate workspace keys and connect external apps without proxying or changing your architecture.",
-    },
-    {
-      icon: ShieldCheck,
-      title: "Keep production safe",
-      description:
-        "Send telemetry asynchronously so your user-facing requests stay fast even if ingestion fails.",
-    },
-  ];
-
-  const steps = [
-    {
-      step: "01",
-      title: "Create a workspace key",
-      description:
-        "Generate an API key for your app and keep it in server-side environment variables.",
-    },
-    {
-      step: "02",
-      title: "Connect your backend",
-      description:
-        "Send telemetry to the API base URL after each AI response using your existing provider client.",
-    },
-    {
-      step: "03",
-      title: "Monitor real usage",
-      description:
-        "Open the dashboard to see costs, tokens, latency, logs, and model activity in real time.",
-    },
-  ];
+export default async function Home() {
+  const supabase = createSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  // Server-side check for the landing page (Server Component)
+  const allowRegister = process.env.ALLOW_REGISTER === "true";
 
   return (
-    <main className="min-h-screen relative overflow-hidden bg-canvas">
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(128,128,128,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(128,128,128,0.03)_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
+    <main className="min-h-screen bg-canvas selection:bg-accent-wash selection:text-primary">
+      <Navbar user={user} allowRegister={allowRegister} />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-6 py-10 md:py-16">
-        <section className="animate-fade-in grid grid-cols-1 lg:grid-cols-2 gap-10 items-center min-h-[75vh]">
-          <div className="max-w-2xl">
-            <span className="inline-flex items-center gap-2 rounded-full bg-surface border border-border text-primary px-3 py-1 text-xs font-bold uppercase tracking-wider mb-6 shadow-sm">
-              <Cpu className="w-3.5 h-3.5 text-accent" />
-              AI Cost Tracker
-            </span>
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-display font-semibold tracking-tight text-primary mb-5 leading-[1.05]">
-              Financial visibility for
-              <span className="italic block mt-2">AI products.</span>
-            </h1>
-            <p className="text-muted text-lg md:text-xl max-w-xl leading-relaxed mb-8">
-              acost helps teams track AI usage, monitor model costs, and
-              understand feature-level economics with API-first telemetry and a
-              clean analytics dashboard.
-            </p>
-            <div className="flex flex-wrap gap-4 mb-8">
+      {/* Hero Section */}
+      <section className="relative pt-32 pb-20 md:pt-48 md:pb-32 overflow-hidden border-b border-border">
+        <div className="absolute inset-0 z-0 opacity-60 text-muted dark:text-zinc-500">
+          <DotGrid 
+            dotSize={4}
+            gap={32}
+            baseColor="#3a2618"
+            activeColor="#F97316"
+            proximity={120}
+            shockRadius={250}
+            shockStrength={5}
+            resistance={750}
+            returnDuration={1.5}
+          />
+        </div>
+        
+        <div className="relative z-10 max-w-7xl mx-auto px-6 text-center">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent-wash border border-border text-primary text-[10px] font-bold uppercase tracking-widest mb-8 animate-fade-in">
+            <Zap className="w-3 h-3 text-accent" />
+            Telemetry for AI Teams
+          </div>
+          <h1 className="text-5xl md:text-7xl lg:text-8xl font-display font-semibold tracking-tight text-primary mb-8 leading-[1.05] animate-fade-in delay-100 mx-auto">
+            Turns your AI expenses into <br />
+            <span className="text-orange-500 italic text-4xl md:text-6xl lg:text-7xl">actionable business insights.</span>
+          </h1>
+          <p className="text-muted text-lg md:text-xl max-w-2xl mx-auto leading-relaxed mb-12 animate-fade-in delay-200">
+            acost provides real-time financial visibility into your AI workloads. 
+            Track tokens, latency, and costs at the feature level without proxying traffic.
+          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in delay-300">
+            {user ? (
               <Link
-                href="/signup"
-                className="button-spring inline-flex items-center gap-2 px-6 py-3 bg-accent hover:opacity-90 text-canvas font-semibold rounded-md text-sm shadow-md"
+                href="/dashboard"
+                className="button-spring w-full sm:w-auto px-8 py-4 bg-accent text-canvas font-semibold rounded-full text-base shadow-lg flex items-center justify-center gap-2"
               >
-                <span>Create Account</span>
+                Go to Dashboard
                 <ArrowRight className="w-4 h-4" />
               </Link>
-              <Link
-                href="/docs"
-                className="button-spring px-6 py-3 bg-surface hover:bg-elevated/40 text-secondary hover:text-primary font-semibold rounded-md text-sm border border-border"
-              >
-                API Docs
-              </Link>
-              <Link
-                href="/login"
-                className="button-spring px-6 py-3 bg-surface hover:bg-elevated/40 text-secondary hover:text-primary font-semibold rounded-md text-sm border border-border"
-              >
-                Sign In
-              </Link>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {[
-                "Track provider and model usage",
-                "Measure tokens, cost, and latency",
-                "Integrate with a simple API base URL",
-              ].map((item) => (
-                <div
-                  key={item}
-                  className="rounded-xl border border-border bg-surface px-4 py-3 text-sm text-secondary shadow-sm"
+            ) : (
+              <>
+                {allowRegister && (
+                  <Link
+                    href="/signup"
+                    className="button-spring w-full sm:w-auto px-8 py-4 bg-accent text-canvas font-semibold rounded-full text-base shadow-lg flex items-center justify-center gap-2"
+                  >
+                    Start Free
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                )}
+                <Link
+                  href="/docs"
+                  className="button-spring w-full sm:w-auto px-8 py-4 bg-surface hover:bg-elevated/40 text-secondary hover:text-primary font-semibold rounded-full text-base border border-border shadow-sm flex items-center justify-center gap-2"
                 >
-                  {item}
-                </div>
-              ))}
-            </div>
+                  View Documentation
+                </Link>
+              </>
+            )}
           </div>
+        </div>
+      </section>
 
-          <div className="grid grid-cols-1 gap-4">
-            <div className="fuser-card">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted mb-1">
-                    Live Overview
-                  </p>
-                  <h2 className="text-2xl font-display font-semibold text-primary">
-                    AI cost intelligence dashboard
-                  </h2>
-                </div>
-                <div className="rounded-lg border border-border bg-canvas p-2 text-primary">
-                  <BarChart3 className="w-5 h-5" />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                {[
-                  { label: "Requests", value: "18,492" },
-                  { label: "Total Cost", value: "$482.19" },
-                  { label: "Avg Latency", value: "842ms" },
-                  { label: "Tracked Models", value: "7" },
-                ].map((card) => (
-                  <div
-                    key={card.label}
-                    className="rounded-xl border border-border bg-canvas px-4 py-4"
-                  >
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-muted mb-1">
-                      {card.label}
-                    </p>
-                    <p className="text-2xl font-display font-semibold text-primary">
-                      {card.value}
-                    </p>
-                  </div>
-                ))}
-              </div>
-              <div className="rounded-xl border border-border bg-canvas p-4">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-muted mb-3">
-                  Recent Insight
-                </p>
-                <p className="text-sm text-secondary leading-relaxed">
-                  `chat-answer` is your highest-cost feature this week, driven by
-                  `gpt-4o` usage and long prompts. Move short requests to a
-                  cheaper model to improve margins.
-                </p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Link
-                href="/dashboard/onboarding"
-                className="fuser-card block button-spring hover:bg-elevated/20"
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <Route className="w-5 h-5 text-primary" />
-                  <ArrowRight className="w-4 h-4 text-muted" />
-                </div>
-                <h3 className="text-lg font-display font-semibold text-primary mb-1">
-                  Onboarding
-                </h3>
-                <p className="text-sm text-muted leading-relaxed">
-                  Learn how to connect your codebase using the external consume
-                  API.
-                </p>
-              </Link>
-              <Link
-                href="/docs"
-                className="fuser-card block button-spring hover:bg-elevated/20"
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <BookOpen className="w-5 h-5 text-primary" />
-                  <ArrowRight className="w-4 h-4 text-muted" />
-                </div>
-                <h3 className="text-lg font-display font-semibold text-primary mb-1">
-                  API Docs
-                </h3>
-                <p className="text-sm text-muted leading-relaxed">
-                  Copy ready-to-use examples, request payloads, and integration
-                  guides.
-                </p>
-              </Link>
-            </div>
+      {/* Social Proof / Trusted By */}
+      <section className="py-12 bg-surface/50 border-b border-border">
+        <div className="max-w-7xl mx-auto px-6 flex flex-col items-center">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted mb-8">
+            Powering AI SaaS Teams
+          </p>
+          <div className="flex flex-wrap justify-center items-center gap-12 opacity-50 grayscale contrast-125">
+             <div className="text-xl font-bold font-display">OPENAI</div>
+             <div className="text-xl font-bold font-display">ANTHROPIC</div>
+             <div className="text-xl font-bold font-display">OPENROUTER</div>
+             <div className="text-xl font-bold font-display">TOGETHER AI</div>
+             <div className="text-xl font-bold font-display">MISTRAL</div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        <section className="py-8 md:py-12 space-y-6 animate-fade-in delay-100">
-          <div className="max-w-2xl">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-muted mb-2">
-              Why acost
-            </p>
-            <h2 className="text-3xl md:text-4xl font-display font-semibold text-primary mb-3">
-              Built for product teams that need real AI cost clarity
+      {/* Features Grid */}
+      <section id="features" className="py-24 md:py-32 border-b border-border bg-canvas">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="max-w-3xl mb-20">
+            <h2 className="text-4xl md:text-5xl font-display font-semibold text-primary mb-6">
+              AI Profitability Intelligence
             </h2>
-            <p className="text-muted text-base leading-relaxed">
-              Most provider dashboards only show total spend. acost connects AI
-              requests to features, users, models, and usage patterns so teams
-              can understand where margins are gained or lost.
+            <p className="text-muted text-lg leading-relaxed">
+              Stop guessing your margins. acost gives you the granular data you need to 
+              optimize your AI costs and improve unit economics.
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-            {featureCards.map((feature) => {
-              const Icon = feature.icon;
-              return (
-                <div key={feature.title} className="fuser-card">
-                  <div className="w-10 h-10 rounded-lg bg-canvas border border-border flex items-center justify-center text-primary mb-4">
-                    <Icon className="w-4 h-4" />
-                  </div>
-                  <h3 className="text-lg font-display font-semibold text-primary mb-2">
-                    {feature.title}
-                  </h3>
-                  <p className="text-sm text-muted leading-relaxed">
-                    {feature.description}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-
-        <section className="py-8 md:py-12 animate-fade-in delay-200">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-            <div className="fuser-card">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-muted mb-2">
-                Product Showcase
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="fuser-card group hover:border-accent/20 transition-all duration-500">
+              <div className="w-12 h-12 rounded-2xl bg-accent-wash flex items-center justify-center text-accent mb-6 group-hover:bg-accent group-hover:text-canvas transition-colors duration-500">
+                <Activity className="w-6 h-6" />
+              </div>
+              <h3 className="text-xl font-display font-semibold text-primary mb-3">Granular Telemetry</h3>
+              <p className="text-secondary text-sm leading-relaxed">
+                Track provider, model, input/output tokens, cost, and latency for every single request in real-time.
               </p>
-              <h2 className="text-3xl font-display font-semibold text-primary mb-4">
-                What the platform helps you answer
+            </div>
+            
+            <div className="fuser-card group hover:border-accent/20 transition-all duration-500">
+              <div className="w-12 h-12 rounded-2xl bg-accent-wash flex items-center justify-center text-accent mb-6 group-hover:bg-accent group-hover:text-canvas transition-colors duration-500">
+                <Layers className="w-6 h-6" />
+              </div>
+              <h3 className="text-xl font-display font-semibold text-primary mb-3">Feature Tracking</h3>
+              <p className="text-secondary text-sm leading-relaxed">
+                Connect AI costs directly to your product features. Know which parts of your app are profitable and which aren't.
+              </p>
+            </div>
+            
+            <div className="fuser-card group hover:border-accent/20 transition-all duration-500">
+              <div className="w-12 h-12 rounded-2xl bg-accent-wash flex items-center justify-center text-accent mb-6 group-hover:bg-accent group-hover:text-canvas transition-colors duration-500">
+                <PieChart className="w-6 h-6" />
+              </div>
+              <h3 className="text-xl font-display font-semibold text-primary mb-3">Cost Analysis</h3>
+              <p className="text-secondary text-sm leading-relaxed">
+                Beautifully visualized cost breakdowns by model, provider, and feature tag. Identify spend anomalies instantly.
+              </p>
+            </div>
+
+            <div className="fuser-card group hover:border-accent/20 transition-all duration-500">
+              <div className="w-12 h-12 rounded-2xl bg-accent-wash flex items-center justify-center text-accent mb-6 group-hover:bg-accent group-hover:text-canvas transition-colors duration-500">
+                <KeyRound className="w-6 h-6" />
+              </div>
+              <h3 className="text-xl font-display font-semibold text-primary mb-3">Simple Integration</h3>
+              <p className="text-secondary text-sm leading-relaxed">
+                Generate a workspace key and send telemetry via a simple REST API. No complex SDKs or proxying required.
+              </p>
+            </div>
+
+            <div className="fuser-card group hover:border-accent/20 transition-all duration-500">
+              <div className="w-12 h-12 rounded-2xl bg-accent-wash flex items-center justify-center text-accent mb-6 group-hover:bg-accent group-hover:text-canvas transition-colors duration-500">
+                <Shield className="w-6 h-6" />
+              </div>
+              <h3 className="text-xl font-display font-semibold text-primary mb-3">Non-Blocking</h3>
+              <p className="text-secondary text-sm leading-relaxed">
+                Send telemetry asynchronously from your backend. Your AI responses stay fast, even if the analytics call fails.
+              </p>
+            </div>
+
+            <div className="fuser-card group hover:border-accent/20 transition-all duration-500">
+              <div className="w-12 h-12 rounded-2xl bg-accent-wash flex items-center justify-center text-accent mb-6 group-hover:bg-accent group-hover:text-canvas transition-colors duration-500">
+                <LineChart className="w-6 h-6" />
+              </div>
+              <h3 className="text-xl font-display font-semibold text-primary mb-3">Usage Trends</h3>
+              <p className="text-secondary text-sm leading-relaxed">
+                Monitor growth trends and cost spikes over time. Get ahead of your AI bill before it becomes a problem.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* How it works */}
+      <section id="how-it-works" className="py-24 md:py-32 border-b border-border bg-surface">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center max-w-3xl mx-auto mb-20">
+            <h2 className="text-4xl md:text-5xl font-display font-semibold text-primary mb-6">
+              Connect in 3 minutes
+            </h2>
+            <p className="text-muted text-lg">
+              acost was built to be invisible to your users and painless for your developers.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 relative">
+            <div className="hidden lg:block absolute top-10 left-[33%] right-[33%] h-px bg-border border-dashed" />
+            
+            <div className="relative text-center">
+              <div className="w-16 h-16 rounded-full bg-canvas border border-border flex items-center justify-center text-xl font-bold font-display mx-auto mb-8 relative z-10 shadow-sm">
+                01
+              </div>
+              <h3 className="text-xl font-display font-semibold text-primary mb-4">Create API Key</h3>
+              <p className="text-muted text-sm leading-relaxed">
+                Generate a unique key for your workspace. Store it in your server-side environment variables.
+              </p>
+            </div>
+
+            <div className="relative text-center">
+              <div className="w-16 h-16 rounded-full bg-canvas border border-border flex items-center justify-center text-xl font-bold font-display mx-auto mb-8 relative z-10 shadow-sm">
+                02
+              </div>
+              <h3 className="text-xl font-display font-semibold text-primary mb-4">Post Telemetry</h3>
+              <p className="text-muted text-sm leading-relaxed">
+                After your AI response finishes, send the metadata to our ingest endpoint. Use our SDK or a simple POST request.
+              </p>
+            </div>
+
+            <div className="relative text-center">
+              <div className="w-16 h-16 rounded-full bg-canvas border border-border flex items-center justify-center text-xl font-bold font-display mx-auto mb-8 relative z-10 shadow-sm">
+                03
+              </div>
+              <h3 className="text-xl font-display font-semibold text-primary mb-4">View Analytics</h3>
+              <p className="text-muted text-sm leading-relaxed">
+                Open your dashboard to see real-time costs, token counts, and feature economics.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA */}
+      <section className="py-24 md:py-32 bg-canvas">
+        <div className="max-w-4xl mx-auto px-6">
+          <div className="fuser-card bg-surface border border-border p-12 md:p-20 text-center relative overflow-hidden group shadow-xl">
+            <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-transparent pointer-events-none" />
+            
+            <div className="relative z-10">
+              <h2 className="text-4xl md:text-5xl font-display font-semibold mb-8 tracking-tight text-primary">
+                Ready to understand your <br /> AI margins?
               </h2>
-              <div className="space-y-3 text-sm">
-                {[
-                  "Which features generate the most AI cost?",
-                  "Which models are overused for simple requests?",
-                  "Which users or tenants create margin pressure?",
-                  "How much latency and token usage does each feature create?",
-                ].map((question) => (
-                  <div
-                    key={question}
-                    className="rounded-xl border border-border bg-canvas px-4 py-3 text-secondary"
+              <p className="text-muted text-lg mb-12 max-w-xl mx-auto">
+                Join founders who are building profitable AI products with real-time financial visibility.
+              </p>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                {user ? (
+                  <Link
+                    href="/dashboard"
+                    className="button-spring w-full sm:w-auto px-8 py-4 bg-accent text-canvas font-bold rounded-full text-base shadow-lg"
                   >
-                    {question}
-                  </div>
-                ))}
+                    Go to Dashboard
+                  </Link>
+                ) : (
+                  <>
+                    {allowRegister && (
+                      <Link
+                        href="/signup"
+                        className="button-spring w-full sm:w-auto px-8 py-4 bg-accent text-canvas font-bold rounded-full text-base shadow-lg"
+                      >
+                        Get Started Free
+                      </Link>
+                    )}
+                    <Link
+                      href="/docs"
+                      className="button-spring w-full sm:w-auto px-8 py-4 bg-surface hover:bg-elevated/40 border border-border text-secondary hover:text-primary font-bold rounded-full text-base shadow-sm"
+                    >
+                      Read the Docs
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
-
-            <div className="fuser-card">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-muted mb-2">
-                Integration Flow
-              </p>
-              <h2 className="text-3xl font-display font-semibold text-primary mb-4">
-                Start in minutes
-              </h2>
-              <div className="space-y-4">
-                {steps.map((item) => (
-                  <div
-                    key={item.step}
-                    className="rounded-xl border border-border bg-canvas px-4 py-4"
-                  >
-                    <div className="text-[10px] font-bold uppercase tracking-wider text-muted mb-1">
-                      Step {item.step}
-                    </div>
-                    <h3 className="text-lg font-display font-semibold text-primary mb-1">
-                      {item.title}
-                    </h3>
-                    <p className="text-sm text-muted leading-relaxed">
-                      {item.description}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        <section className="py-8 md:py-12 animate-fade-in delay-300">
-          <div className="fuser-card flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-            <div className="max-w-2xl">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-muted mb-2">
-                Ready To Integrate
-              </p>
-              <h2 className="text-3xl font-display font-semibold text-primary mb-2">
-                Connect your AI product and start tracking real usage
-              </h2>
-              <p className="text-sm text-muted leading-relaxed">
-                Use the onboarding flow, copy integration snippets from the docs,
-                and send telemetry from your backend with your workspace API key.
-              </p>
+      {/* Footer */}
+      <footer className="py-12 border-t border-border bg-surface">
+        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-8">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded bg-accent flex items-center justify-center text-canvas font-bold text-xs">
+              a
             </div>
-            <div className="flex flex-wrap gap-3">
-              <Link
-                href="/dashboard/onboarding"
-                className="button-spring inline-flex items-center gap-2 px-5 py-3 bg-accent hover:opacity-90 text-canvas font-semibold rounded-md text-sm"
-              >
-                <span>Open Onboarding</span>
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-              <Link
-                href="/docs"
-                className="button-spring px-5 py-3 bg-surface hover:bg-elevated/40 border border-border text-secondary hover:text-primary font-semibold rounded-md text-sm"
-              >
-                Read API Docs
-              </Link>
-            </div>
+            <span className="font-display font-bold text-base tracking-tight text-primary">
+              acost<span className="text-accent">.</span>
+            </span>
           </div>
-        </section>
-      </div>
+          <div className="flex gap-8 text-xs font-medium text-muted">
+            <Link href="/docs" className="hover:text-primary transition-colors">Documentation</Link>
+            <Link href="#" className="hover:text-primary transition-colors">Privacy Policy</Link>
+            <Link href="#" className="hover:text-primary transition-colors">Terms of Service</Link>
+            <Link href="#" className="hover:text-primary transition-colors">Contact</Link>
+          </div>
+          <p className="text-[10px] font-bold text-muted uppercase tracking-widest">
+            © {new Date().getFullYear()} acost intelligence
+          </p>
+        </div>
+      </footer>
     </main>
   );
 }

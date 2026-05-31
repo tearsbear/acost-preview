@@ -6,7 +6,7 @@ The goal is to:
 
 - detect where AI API calls already happen
 - attach telemetry at the correct integration points
-- send telemetry to `POST /api/external/consume`
+- send telemetry to `POST /v1/track`
 - preserve app behavior without blocking user-facing requests
 
 ## Integration Target
@@ -20,7 +20,7 @@ POST {ACOST_BASE_URL}
 Recommended environment variables:
 
 ```env
-ACOST_BASE_URL=https://your-domain.com/api/external/consume
+ACOST_BASE_URL=https://tracker.your-domain.com/v1/track
 ACOST_API_KEY=acost_your_secret_key
 ```
 

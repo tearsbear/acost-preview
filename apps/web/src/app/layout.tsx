@@ -1,10 +1,11 @@
 import { Bricolage_Grotesque } from "next/font/google";
 import "./globals.css";
+import { cn } from "@/lib/utils";
 
 const bricolage = Bricolage_Grotesque({
   subsets: ["latin"],
   variable: "--font-sans",
-  weight: ["400", "500", "600", "700", "800"],
+  display: "swap",
 });
 
 export const metadata = {
@@ -18,7 +19,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${bricolage.variable}`} id="theme-root">
+    <html lang="en" className={cn("font-sans", bricolage.variable)} id="theme-root">
       <head>
         <script
           dangerouslySetInnerHTML={{

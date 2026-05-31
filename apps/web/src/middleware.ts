@@ -44,6 +44,12 @@ export async function middleware(request: NextRequest) {
 
   const url = new URL(request.url);
 
+  // Registration feature flag check (Server-side Authority)
+  const allowRegister = process.env.ALLOW_REGISTER === "true";
+  if (url.pathname === "/signup" && !allowRegister) {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
+
   // Protected paths redirection
   if (url.pathname.startsWith("/dashboard")) {
     if (!user) {
@@ -52,7 +58,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // Guest-only paths redirection
-  if (url.pathname === "/" || url.pathname === "/login" || url.pathname === "/signup") {
+  if (url.pathname === "/login" || url.pathname === "/signup") {
     if (user) {
       return NextResponse.redirect(new URL("/dashboard", request.url));
     }

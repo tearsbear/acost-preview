@@ -34,6 +34,7 @@ interface LogEvent {
   prompt: string | null;
   response_content: string | null;
   raw_response: Record<string, unknown> | null;
+  ai_recommendation: string | null;
 }
 
 interface LogsResponse {

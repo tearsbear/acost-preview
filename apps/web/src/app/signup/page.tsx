@@ -18,6 +18,13 @@ export default function Signup() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Check feature flag
+    if (process.env.NEXT_PUBLIC_ALLOW_REGISTER !== "true") {
+      setError("Registration is currently disabled.");
+      return;
+    }
+
     setError(null);
     setLoading(true);
 

@@ -1,21 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, KeyRound, Route, Send, ShieldCheck } from "lucide-react";
+import { ArrowRight, KeyRound, Route, Send, ShieldCheck, Sparkles, Code2, Zap } from "lucide-react";
 import { CopyCodeBlock } from "@/components/CopyCodeBlock";
 import { SkillsGuideActions } from "@/components/SkillsGuideActions";
 
 export const dynamic = "force-dynamic";
 
 export default function OnboardingPage() {
-  const [origin, setOrigin] = useState("https://your-acost-domain.com");
-
-  useEffect(() => {
-    setOrigin(window.location.origin);
-  }, []);
-
-  const endpoint = useMemo(() => `${origin}/api/external/consume`, [origin]);
+  const endpoint = process.env.NEXT_PUBLIC_ACOST_BASE_URL || "https://tracker.your-domain.com/v1/track";
 
   const envSnippet = `ACOST_BASE_URL=${endpoint}
 ACOST_API_KEY=acost_your_secret_key`;
@@ -42,187 +35,165 @@ ACOST_API_KEY=acost_your_secret_key`;
   }),
 });`;
 
-  const asyncSnippet = `void fetch(process.env.ACOST_BASE_URL!, {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    "x-api-key": process.env.ACOST_API_KEY!,
-  },
-  body: JSON.stringify({
-    event: {
-      userId: appUser.id,
-      provider: llm.provider,
-      model: llm.model,
-      feature: "chat",
-      prompt: promptText,
-      inputTokens: usage.input,
-      outputTokens: usage.output,
-      estimatedCost: usage.cost,
-      latency: usage.latency,
-    },
-  }),
-}).catch((error) => {
-  console.warn("Telemetry ingestion failed", error);
-});`;
-
   return (
-    <div className="space-y-8 animate-fade-in max-w-7xl mx-auto">
-      <div className="flex items-end justify-between flex-wrap gap-4">
-        <div className="max-w-2xl">
-          <span className="inline-flex items-center gap-2 rounded-full bg-surface border border-border text-primary px-3 py-1 text-xs font-bold uppercase tracking-wider mb-4">
-            <Route className="w-3.5 h-3.5 text-accent" />
-            Onboarding
-          </span>
-          <h1 className="text-4xl font-display font-semibold tracking-tight text-primary mb-2">
-            Connect your app with the API base URL
+    <div className="max-w-6xl mx-auto px-4 py-12 space-y-16 animate-fade-in">
+      {/* ─── Hero Section ─── */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
+        <div className="max-w-2xl space-y-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/5 border border-accent/10 text-accent text-[10px] font-bold uppercase tracking-widest">
+            <Sparkles className="w-3 h-3" />
+            Quick Start Guide
+          </div>
+          <h1 className="text-5xl font-display font-semibold tracking-tight text-primary leading-[1.1]">
+            Connect your service <br /> in minutes.
           </h1>
-          <p className="text-muted text-sm leading-relaxed">
-            Use your API key and base URL to send telemetry directly from your
-            backend. This onboarding flow replaces the previous SDK-based setup
-            and is optimized for external app integration.
+          <p className="text-secondary text-base leading-relaxed max-w-xl">
+            acost is built for seamless external integration. Follow these steps to start tracking your AI costs and usage metrics with zero friction.
           </p>
         </div>
-        <div className="flex flex-col items-start sm:items-end gap-3">
+        <div className="flex flex-col sm:flex-row items-start gap-4">
           <SkillsGuideActions />
-          <div className="flex gap-3">
-            <Link
-              href="/dashboard/keys"
-              className="button-spring px-4 py-2.5 bg-surface hover:bg-elevated/40 border border-border text-secondary hover:text-primary rounded-md text-sm font-semibold"
-            >
-              Manage API Keys
-            </Link>
-            <Link
-              href="/docs"
-              className="button-spring px-4 py-2.5 bg-accent hover:opacity-90 text-canvas rounded-md text-sm font-semibold"
-            >
-              Open API Docs
-            </Link>
-          </div>
+          <Link
+            href="/docs"
+            className="button-spring flex items-center gap-2 px-6 py-3 bg-accent text-canvas font-semibold rounded-lg text-sm shadow-lg shadow-accent/10"
+          >
+            View Full API Docs
+            <ArrowRight className="w-4 h-4" />
+          </Link>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      {/* ─── Steps Grid ─── */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {[
           {
             icon: KeyRound,
-            label: "Step 1",
-            title: "Create a key",
-            text: "Generate a workspace API key in the API Keys page.",
+            step: "01",
+            title: "Generate API Key",
+            text: "Visit the API Keys page to create a unique credential for your workspace.",
+            link: "/dashboard/keys",
+            linkLabel: "Manage Keys"
           },
           {
             icon: Route,
-            label: "Step 2",
-            title: "Set your base URL",
-            text: "Store the external consume endpoint in your backend env vars.",
+            step: "02",
+            title: "Set Base URL",
+            text: "Point your telemetry to our dedicated tracker service for high-speed ingestion.",
+            link: null,
+            linkLabel: null
           },
           {
-            icon: Send,
-            label: "Step 3",
-            title: "Send telemetry",
-            text: "POST one event or a batch after each AI response.",
-          },
-          {
-            icon: ShieldCheck,
-            label: "Step 4",
-            title: "Keep it async",
-            text: "Send telemetry without blocking the user-facing request path.",
-          },
-        ].map((item) => {
+            icon: Zap,
+            step: "03",
+            title: "Push Telemetry",
+            text: "Send usage data after every LLM call. Supports both single events and batches.",
+            link: null,
+            linkLabel: null
+          }
+        ].map((item, i) => {
           const Icon = item.icon;
           return (
-            <div key={item.label} className="fuser-card">
-              <div className="flex justify-between items-center text-muted mb-3">
-                <span className="text-[10px] font-bold uppercase tracking-wider">
-                  {item.label}
-                </span>
-                <div className="p-1.5 bg-canvas border border-border text-primary rounded-md">
-                  <Icon className="w-3.5 h-3.5" />
+            <div key={item.step} className="fuser-card group hover:translate-y-[-4px] transition-all">
+              <div className="flex justify-between items-start mb-6">
+                <div className="p-3 bg-canvas border border-border text-primary rounded-xl group-hover:border-accent/20 group-hover:bg-accent/5 transition-colors">
+                  <Icon className="w-5 h-5" />
                 </div>
+                <span className="text-2xl font-display font-bold text-muted/20 group-hover:text-accent/10 transition-colors">
+                  {item.step}
+                </span>
               </div>
-              <p className="text-sm font-semibold text-primary mb-1">
-                {item.title}
-              </p>
-              <p className="text-xs text-muted leading-relaxed">{item.text}</p>
+              <h3 className="text-lg font-semibold text-primary mb-2">{item.title}</h3>
+              <p className="text-sm text-muted leading-relaxed mb-4">{item.text}</p>
+              {item.link && (
+                <Link href={item.link} className="text-xs font-bold text-accent hover:underline inline-flex items-center gap-1">
+                  {item.linkLabel}
+                  <ArrowRight className="w-3 h-3" />
+                </Link>
+              )}
             </div>
           );
         })}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="fuser-card space-y-4">
-          <div>
-            <h2 className="text-2xl font-display font-semibold text-primary mb-2">
-              1. Store environment variables
-            </h2>
-            <p className="text-sm text-muted leading-relaxed">
-              Keep your ingestion target and secret key in server-side
-              environment variables. Do not expose the key in the browser.
-            </p>
-          </div>
-          <CopyCodeBlock title="Backend env" code={envSnippet} />
-        </div>
-
-        <div className="fuser-card space-y-4">
-          <div>
-            <h2 className="text-2xl font-display font-semibold text-primary mb-2">
-              2. Send one event
-            </h2>
-            <p className="text-sm text-muted leading-relaxed">
-              Send telemetry after you receive token usage, cost, and latency
-              from your AI provider response.
-            </p>
-          </div>
-          <CopyCodeBlock title="Single event request" code={requestSnippet} />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="fuser-card space-y-4">
-          <div>
-            <h2 className="text-2xl font-display font-semibold text-primary mb-2">
-              3. Keep telemetry non-blocking
-            </h2>
-            <p className="text-sm text-muted leading-relaxed">
-              If you want the safest UX, send telemetry in a fire-and-forget
-              call or queue job so customer responses are never delayed.
-            </p>
-          </div>
-          <CopyCodeBlock title="Async ingestion pattern" code={asyncSnippet} />
-        </div>
-
-        <div className="fuser-card space-y-4">
-          <div>
-            <h2 className="text-2xl font-display font-semibold text-primary mb-2">
-              Required payload fields
-            </h2>
-            <p className="text-sm text-muted leading-relaxed">
-              Every telemetry event must include these fields for external app
-              ingestion to be accepted. Include `prompt` too when you want full
-              request context in the dashboard logs.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {["userId", "provider", "model", "feature", "prompt"].map((field) => (
-              <div
-                key={field}
-                className="px-3 py-2 rounded-md border border-border bg-canvas text-xs font-mono text-secondary"
-              >
-                {field}
+      {/* ─── Code Implementation ─── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+        <div className="space-y-8">
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-primary text-canvas flex items-center justify-center font-display font-bold text-xs">
+                1
               </div>
-            ))}
+              <h2 className="text-2xl font-display font-semibold text-primary">Configure Environment</h2>
+            </div>
+            <p className="text-sm text-secondary leading-relaxed pl-11">
+              Store your ingestion target and secret key in your server-side environment variables. 
+              <span className="block mt-2 font-medium text-amber-600 dark:text-amber-400">
+                ⚠️ Never expose your API key in client-side code.
+              </span>
+            </p>
+            <div className="pl-11">
+              <CopyCodeBlock title=".env" code={envSnippet} language="bash" />
+            </div>
           </div>
-          <div className="rounded-md border border-border bg-canvas p-4 text-xs text-muted leading-relaxed">
-            `userId`, `provider`, and `model` are required. `feature` is highly
-            recommended for better analytics grouping, and `prompt` is optional
-            but useful when you want richer run logs.
+
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-primary text-canvas flex items-center justify-center font-display font-bold text-xs">
+                2
+              </div>
+              <h2 className="text-2xl font-display font-semibold text-primary">Send First Event</h2>
+            </div>
+            <p className="text-sm text-secondary leading-relaxed pl-11">
+              Trigger a non-blocking POST request after your AI provider returns usage data. 
+              We recommend using a background task or fire-and-forget pattern.
+            </p>
+            <div className="pl-11">
+              <CopyCodeBlock title="Node.js / TypeScript" code={requestSnippet} language="typescript" />
+            </div>
           </div>
-          <Link
-            href="/docs"
-            className="button-spring inline-flex items-center gap-2 px-4 py-2 bg-surface hover:bg-elevated/40 border border-border text-secondary hover:text-primary rounded-md text-sm font-semibold"
-          >
-            <span>Read full API docs</span>
-            <ArrowRight className="w-4 h-4" />
-          </Link>
+        </div>
+
+        {/* ─── Technical Reference ─── */}
+        <div className="fuser-card bg-surface-elevated/50 sticky top-8">
+          <div className="flex items-center gap-2 mb-6">
+            <Code2 className="w-4 h-4 text-accent" />
+            <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-muted">Technical Specs</h3>
+          </div>
+          
+          <div className="space-y-6">
+            <div>
+              <h4 className="text-sm font-semibold text-primary mb-3">Required Payload Fields</h4>
+              <div className="grid grid-cols-2 gap-2">
+                {["userId", "provider", "model"].map(f => (
+                  <div key={f} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-canvas border border-border text-[11px] font-mono text-secondary">
+                    <ShieldCheck className="w-3 h-3 text-emerald-500" />
+                    {f}
+                  </div>
+                ))}
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-canvas border border-border text-[11px] font-mono text-muted/60">
+                  <span className="w-3 h-3 flex items-center justify-center text-[10px]">—</span>
+                  feature
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-xl bg-accent/5 border border-accent/10 space-y-2">
+              <p className="text-xs font-bold text-accent uppercase tracking-wider flex items-center gap-2">
+                <Zap className="w-3 h-3" />
+                Performance Tip
+              </p>
+              <p className="text-xs text-secondary leading-relaxed">
+                Use the <code className="text-accent font-bold">void fetch(...)</code> pattern in Node.js to send telemetry without awaiting the response, ensuring zero impact on user latency.
+              </p>
+            </div>
+
+            <div className="pt-4 border-t border-border">
+              <Link href="/dashboard" className="w-full button-spring flex items-center justify-center gap-2 py-3 bg-surface border border-border hover:border-accent/20 rounded-lg text-sm font-semibold text-primary">
+                Go to Dashboard
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     </div>

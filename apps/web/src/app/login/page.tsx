@@ -107,9 +107,13 @@ export default function Login() {
 
         <p className="text-center text-sm text-muted mt-6">
           Don't have an account?{" "}
-          <Link href="/signup" className="text-accent hover:underline font-semibold">
-            Sign up for free
-          </Link>
+          {process.env.NEXT_PUBLIC_ALLOW_REGISTER === "true" ? (
+            <Link href="/signup" className="text-accent hover:underline font-semibold">
+              Sign up for free
+            </Link>
+          ) : (
+            <span className="opacity-50 cursor-not-allowed">Sign up (Disabled)</span>
+          )}
         </p>
       </div>
     </main>
