@@ -17,20 +17,7 @@ import {
   Sparkles,
   RefreshCw,
 } from "lucide-react";
-
-interface DashboardEvent {
-  id: string;
-  feature: string;
-  model: string;
-  input_tokens: number;
-  output_tokens: number;
-  estimated_cost: number;
-  latency: number;
-  created_at: string;
-  prompt: string | null;
-  response_content: string | null;
-  raw_response: Record<string, unknown> | null;
-}
+import { type Event as DashboardEvent } from "./EventsTable";
 
 interface RunDetailDrawerProps {
   event: DashboardEvent | null; // null = closed
@@ -48,7 +35,9 @@ export function RunDetailDrawer({ event, onClose }: RunDetailDrawerProps) {
   const [isBrowser, setIsBrowser] = useState(false);
 
   // Recommendation state
-  const [recommendation, setRecommendation] = useState<string | null>(null);
+  const [recommendation, setRecommendation] = useState<string | null>(
+    event?.ai_recommendation || null,
+  );
   const [loadingRecommend, setLoadingRecommend] = useState(false);
 
   // Only enable portal on client
@@ -61,7 +50,7 @@ export function RunDetailDrawer({ event, onClose }: RunDetailDrawerProps) {
     if (isOpen) {
       setMounted(true);
       setRawExpanded(true);
-      setRecommendation(null); // Reset on open
+      setRecommendation(event?.ai_recommendation || null); // Initialize with saved recommendation
       document.body.style.overflow = "hidden";
       const raf = requestAnimationFrame(() => {
         requestAnimationFrame(() => setVisible(true));
@@ -124,6 +113,21 @@ export function RunDetailDrawer({ event, onClose }: RunDetailDrawerProps) {
   const drawerStyle: React.CSSProperties = {
     transform: visible ? "translateX(0)" : "translateX(100%)",
     transition: `transform 300ms ${EASE_OUT}`,
+  };
+
+  // Helper to format recommendation text with basic markdown
+  const formatRecommendation = (text: string) => {
+    if (!text) return null;
+    
+    // Split by bold patterns
+    const parts = text.split(/(\*\*.*?\*\*)/g);
+    
+    return parts.map((part, i) => {
+      if (part.startsWith("**") && part.endsWith("**")) {
+        return <strong key={i} className="text-primary not-italic font-bold">{part.slice(2, -2)}</strong>;
+      }
+      return part;
+    });
   };
 
   const drawer = (
@@ -233,7 +237,7 @@ export function RunDetailDrawer({ event, onClose }: RunDetailDrawerProps) {
                 </div>
                 <div className="p-4 bg-canvas/40 border border-accent/10 rounded-xl">
                   <p className="text-sm text-secondary leading-relaxed italic">
-                    "{recommendation}"
+                    &quot;{formatRecommendation(recommendation)}&quot;
                   </p>
                 </div>
               </div>
@@ -315,7 +319,7 @@ export function RunDetailDrawer({ event, onClose }: RunDetailDrawerProps) {
                 <MessageSquare className="w-3 h-3" />
                 <span>Prompt</span>
               </div>
-              <div className="bg-canvas border border-border rounded-md p-3 text-primary text-sm whitespace-pre-wrap leading-relaxed max-h-48 overflow-y-auto">
+              <div className="bg-canvas border border-border rounded-md p-3 text-primary text-sm whitespace-pre-wrap leading-relaxed max-h-[300px] overflow-y-auto">
                 {event.prompt}
               </div>
             </div>
@@ -328,7 +332,7 @@ export function RunDetailDrawer({ event, onClose }: RunDetailDrawerProps) {
                 <Cpu className="w-3 h-3" />
                 <span>Response</span>
               </div>
-              <div className="bg-canvas border border-border rounded-md p-3 text-primary text-sm whitespace-pre-wrap leading-relaxed max-h-48 overflow-y-auto">
+              <div className="bg-canvas border border-border rounded-md p-3 text-primary text-sm whitespace-pre-wrap leading-relaxed max-h-[300px] overflow-y-auto">
                 {event.response_content}
               </div>
             </div>

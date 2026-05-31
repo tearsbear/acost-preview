@@ -5,6 +5,7 @@ import Link from "next/link";
 import { CopyCodeBlock } from "@/components/CopyCodeBlock";
 import { RunDetailDrawer } from "./components/RunDetailDrawer";
 import { DashboardSkeleton } from "./components/DashboardSkeleton";
+import { EventsTable, type Event } from "./components/EventsTable";
 import {
   AreaChart,
   Area,
@@ -47,19 +48,7 @@ interface DashboardData {
     tokens: number;
   }>;
   models: Array<{ model: string; requests: number; cost: number }>;
-  events: Array<{
-    id: string;
-    feature: string;
-    model: string;
-    input_tokens: number;
-    output_tokens: number;
-    estimated_cost: number;
-    latency: number;
-    created_at: string;
-    prompt: string;
-    response_content: string;
-    raw_response: Record<string, unknown> | null;
-  }>;
+  events: Event[];
 }
 
 interface AIInsightsData {
@@ -633,59 +622,14 @@ ACOST_API_KEY=acost_your_secret_key`;
                 Recent Ingestions
               </h2>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead>
-                  <tr className="border-b border-border text-muted text-[10px] font-bold uppercase tracking-wider">
-                    <th className="pb-3.5 pl-2">Feature Tag</th>
-                    <th className="pb-3.5">Model</th>
-                    <th className="pb-3.5">Tokens (in + out)</th>
-                    <th className="pb-3.5">Latency</th>
-                    <th className="pb-3.5">Estimated Cost</th>
-                    <th className="pb-3.5">Logged</th>
-                    <th className="pb-3.5 text-right pr-2">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border/60">
-                  {data?.events.slice(0, 5).map((event) => (
-                    <tr
-                      key={event.id}
-                      className="text-secondary group hover:bg-elevated/20 cursor-pointer"
-                      onClick={() => setSelectedEvent(event)}
-                    >
-                      <td className="py-4 pl-2 font-medium">
-                        <span className="font-mono text-xs bg-accent-wash text-accent border border-accent/10 px-2 py-0.5 rounded-full">
-                          {event.feature}
-                        </span>
-                      </td>
-                      <td className="py-4 text-xs font-semibold text-primary">
-                        {event.model}
-                      </td>
-                      <td className="py-4 text-xs text-muted">
-                        {event.input_tokens + event.output_tokens}{" "}
-                        <span className="text-[10px] text-muted/80">
-                          ({event.input_tokens} + {event.output_tokens})
-                        </span>
-                      </td>
-                      <td className="py-4 text-xs text-muted font-mono">
-                        {event.latency}ms
-                      </td>
-                      <td className="py-4 text-xs text-primary font-mono font-semibold">
-                        {formatCost(event.estimated_cost)}
-                      </td>
-                      <td className="py-4 text-xs text-muted">
-                        {new Date(event.created_at).toLocaleTimeString()}
-                      </td>
-                      <td className="py-4 text-right pr-2">
-                        <span className="inline-flex button-spring items-center gap-2 px-4 py-2 bg-surface group-hover:text-accent border border-border rounded-md  text-secondary group-hover:bg-accent/10 transition-colors">
-                          View
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            
+            <EventsTable 
+              events={data?.events.slice(0, 5) || []}
+              onEventClick={setSelectedEvent}
+              formatCost={formatCost}
+              formatTokens={formatTokens}
+            />
+
             {(data?.events.length ?? 0) > 5 && (
               <div className="mt-4 pt-4 border-t border-border flex justify-center">
                 <Link

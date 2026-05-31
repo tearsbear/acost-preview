@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
     const { data: recentEvents, error: eventsError } = await supabase
       .from("events")
       .select(
-        "id, feature, model, input_tokens, output_tokens, estimated_cost, latency, user_id, created_at, prompt, response_content, raw_response",
+        "id, feature, model, provider, input_tokens, output_tokens, estimated_cost, latency, user_id, created_at, prompt, response_content, raw_response, ai_recommendation",
       )
       .eq("workspace_id", workspaceId)
       .order("created_at", { ascending: false })

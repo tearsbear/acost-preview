@@ -60,7 +60,6 @@ export async function POST(request: NextRequest) {
       keyId: apiKeyId,
       events: extracted.events,
       validation: {
-        defaultProvider: "openai",
         defaultModel: "unknown",
         defaultFeature: "playground",
       },

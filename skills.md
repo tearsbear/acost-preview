@@ -52,7 +52,8 @@ void fetch(process.env.ACOST_BASE_URL!, {
     event: {
       userId: user.id,
       model: "custom-model",
-      latency
+      latency,
+      rawResponse: response // Capture full provider JSON for deep debugging
     }
   })
 }).catch(() => {}); // Prevent telemetry errors from affecting main app
@@ -102,7 +103,8 @@ void fetch(process.env.ACOST_BASE_URL!, {
       responseContent: "The capital of France is Paris.",
       inputTokens: result.usage.prompt_tokens,
       outputTokens: result.usage.completion_tokens,
-      latency: 850
+      latency: 850,
+      rawResponse: result // Full provider JSON for deep debugging
     }
   })
 }).catch(() => {}); // Silent catch to ensure main thread safety

@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
     let query = supabase
       .from("events")
       .select(
-        "id, feature, model, provider, input_tokens, output_tokens, estimated_cost, latency, user_id, created_at, prompt, response_content, raw_response",
+        "id, feature, model, provider, input_tokens, output_tokens, estimated_cost, latency, user_id, created_at, prompt, response_content, raw_response, ai_recommendation",
         { count: "exact" },
       )
       .eq("workspace_id", workspaceId);

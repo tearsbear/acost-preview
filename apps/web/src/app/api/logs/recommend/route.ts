@@ -91,6 +91,17 @@ Return ONLY the recommendation text.
       recommendation = recommendation.replace(/```[a-z]*\n/g, "").replace(/\n```/g, "").trim();
     }
 
+    // Save/Update the recommendation in the events table
+    const { error: updateError } = await supabase
+      .from("events")
+      .update({ ai_recommendation: recommendation })
+      .eq("id", logId);
+
+    if (updateError) {
+      console.error("Failed to persist AI recommendation:", updateError);
+      // We still return the recommendation even if save fails, but log the error
+    }
+
     return NextResponse.json({ recommendation });
   } catch (error: any) {
     console.error("Log Recommendation Error:", error);
