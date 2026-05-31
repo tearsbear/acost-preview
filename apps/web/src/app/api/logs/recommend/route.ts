@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createSupabaseServerClient } from "@/lib/supabaseServer";
+import { createSupabaseServerClient, createSupabaseAdminClient } from "@/lib/supabaseServer";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
   try {
     const supabase = createSupabaseServerClient();
+    const adminSupabase = createSupabaseAdminClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -92,7 +93,8 @@ Return ONLY the recommendation text.
     }
 
     // Save/Update the recommendation in the events table
-    const { error: updateError } = await supabase
+    // Use admin client to bypass RLS for system-level update
+    const { error: updateError } = await adminSupabase
       .from("events")
       .update({ ai_recommendation: recommendation })
       .eq("id", logId);

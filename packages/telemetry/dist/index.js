@@ -144,24 +144,32 @@ async function prepareEvents(supabase, workspaceId, events, options) {
       return { error: "Bad Request: Each event must include model" };
     }
     let estimatedCost = readNumber(rawEvent.estimatedCost);
-    if (estimatedCost === 0 && model) {
-      const providerLower = provider?.toLowerCase();
-      const pricingSource = providerLower === "openrouter" ? "openrouter" : "pricetoken";
-      let normalizedModel = model.toLowerCase();
-      if (normalizedModel.includes("/")) {
-        normalizedModel = normalizedModel.split("/").pop() || normalizedModel;
-      }
-      let modelPricing = pricing[`${normalizedModel}:${pricingSource}`];
-      if (!modelPricing) {
-        const firstMatchKey = Object.keys(pricing).find((k) => k.startsWith(`${normalizedModel}:`));
-        if (firstMatchKey) {
-          modelPricing = pricing[firstMatchKey];
+    if (estimatedCost === 0) {
+      if (rawEvent.rawResponse && typeof rawEvent.rawResponse === "object") {
+        const usage = rawEvent.rawResponse.usage;
+        if (usage && usage.credit !== void 0 && usage.credit !== null) {
+          estimatedCost = readNumber(usage.credit);
         }
       }
-      if (modelPricing) {
-        estimatedCost = inTokens * modelPricing.inputPrice + outTokens * modelPricing.outputPrice;
-      } else {
-        estimatedCost = inTokens * 2e-6 + outTokens * 8e-6;
+      if (estimatedCost === 0 && model) {
+        const providerLower = provider?.toLowerCase();
+        const pricingSource = providerLower === "openrouter" ? "openrouter" : "pricetoken";
+        let normalizedModel = model.toLowerCase();
+        if (normalizedModel.includes("/")) {
+          normalizedModel = normalizedModel.split("/").pop() || normalizedModel;
+        }
+        let modelPricing = pricing[`${normalizedModel}:${pricingSource}`];
+        if (!modelPricing) {
+          const firstMatchKey = Object.keys(pricing).find((k) => k.startsWith(`${normalizedModel}:`));
+          if (firstMatchKey) {
+            modelPricing = pricing[firstMatchKey];
+          }
+        }
+        if (modelPricing) {
+          estimatedCost = inTokens * modelPricing.inputPrice + outTokens * modelPricing.outputPrice;
+        } else {
+          estimatedCost = inTokens * 2e-6 + outTokens * 8e-6;
+        }
       }
     }
     dbEvents.push({

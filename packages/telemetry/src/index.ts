@@ -267,34 +267,45 @@ export async function prepareEvents(
     let estimatedCost = readNumber(rawEvent.estimatedCost);
 
     // Automatic cost calculation fallback
-    if (estimatedCost === 0 && model) {
-      // Determine pricing source: default to pricetoken unless provider is explicitly openrouter
-      const providerLower = provider?.toLowerCase();
-      const pricingSource = providerLower === "openrouter" ? "openrouter" : "pricetoken";
-
-      // Normalize model ID for lookup (strip any provider prefix if present)
-      let normalizedModel = model.toLowerCase();
-      if (normalizedModel.includes("/")) {
-        normalizedModel = normalizedModel.split("/").pop() || normalizedModel;
-      }
-
-      let modelPricing = pricing[`${normalizedModel}:${pricingSource}`];
-      
-      // Secondary lookup: Try without source if primary fails
-      if (!modelPricing) {
-        // Find any source for this model
-        const firstMatchKey = Object.keys(pricing).find(k => k.startsWith(`${normalizedModel}:`));
-        if (firstMatchKey) {
-          modelPricing = pricing[firstMatchKey];
+    if (estimatedCost === 0) {
+      // Check for credit field in rawResponse (for agentic models or custom billing)
+      if (rawEvent.rawResponse && typeof rawEvent.rawResponse === "object") {
+        const usage = (rawEvent.rawResponse as any).usage;
+        if (usage && usage.credit !== undefined && usage.credit !== null) {
+          estimatedCost = readNumber(usage.credit);
         }
       }
 
-      if (modelPricing) {
-        estimatedCost = inTokens * modelPricing.inputPrice + outTokens * modelPricing.outputPrice;
-      } else {
-        // Last resort: standard fallback rates if model is unknown
-        // $0.002 / 1k input, $0.008 / 1k output (roughly GPT-3.5 levels)
-        estimatedCost = (inTokens * 0.000002) + (outTokens * 0.000008);
+      // If still 0 and we have a model, fallback to token-based calculation
+      if (estimatedCost === 0 && model) {
+        // Determine pricing source: default to pricetoken unless provider is explicitly openrouter
+        const providerLower = provider?.toLowerCase();
+        const pricingSource = providerLower === "openrouter" ? "openrouter" : "pricetoken";
+
+        // Normalize model ID for lookup (strip any provider prefix if present)
+        let normalizedModel = model.toLowerCase();
+        if (normalizedModel.includes("/")) {
+          normalizedModel = normalizedModel.split("/").pop() || normalizedModel;
+        }
+
+        let modelPricing = pricing[`${normalizedModel}:${pricingSource}`];
+        
+        // Secondary lookup: Try without source if primary fails
+        if (!modelPricing) {
+          // Find any source for this model
+          const firstMatchKey = Object.keys(pricing).find(k => k.startsWith(`${normalizedModel}:`));
+          if (firstMatchKey) {
+            modelPricing = pricing[firstMatchKey];
+          }
+        }
+
+        if (modelPricing) {
+          estimatedCost = inTokens * modelPricing.inputPrice + outTokens * modelPricing.outputPrice;
+        } else {
+          // Last resort: standard fallback rates if model is unknown
+          // $0.002 / 1k input, $0.008 / 1k output (roughly GPT-3.5 levels)
+          estimatedCost = (inTokens * 0.000002) + (outTokens * 0.000008);
+        }
       }
     }
 
