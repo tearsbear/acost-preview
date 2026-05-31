@@ -13,8 +13,8 @@ import { runPricingSync } from "@acost/pricing";
 var app = new Hono();
 app.use("*", cors());
 app.get("/", (c) => c.text("Tracker API is running"));
-app.post("/v1/internal/sync-pricing", async (c) => {
-  const secret = c.req.header("x-internal-secret");
+app.on(["GET", "POST"], "/v1/internal/sync-pricing", async (c) => {
+  const secret = c.req.header("x-internal-secret") || c.req.query("secret");
   const expectedSecret = process.env.INTERNAL_SYNC_SECRET;
   if (!expectedSecret || secret !== expectedSecret) {
     return c.json({ error: "Unauthorized" }, 401);

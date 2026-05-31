@@ -40,7 +40,7 @@ export default function PlaygroundPage() {
   const [providers, setProviders] = useState<ProviderGroup[]>([]);
   const [loadingModels, setLoadingModels] = useState(true);
   const [modelSource, setModelSource] = useState<
-    "openrouter" | "fallback" | "loading"
+    "openrouter" | "pricetoken" | "fallback" | "loading"
   >("loading");
   const [provider, setProvider] = useState("openai");
   const [model, setModel] = useState("");
@@ -478,6 +478,12 @@ export default function PlaygroundPage() {
             <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/50 text-[10px] font-semibold text-emerald-700 dark:text-emerald-400">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               Live OpenRouter API
+            </span>
+          )}
+          {modelSource === "pricetoken" && (
+            <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/50 text-[10px] font-semibold text-emerald-700 dark:text-emerald-400">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              Live PriceToken API
             </span>
           )}
           {modelSource === "fallback" && (

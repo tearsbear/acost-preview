@@ -33,5 +33,5 @@ export interface ProviderGroup {
 export interface ModelsApiResponse {
   providers: ProviderGroup[];
   cachedAt: string;
-  source: "openrouter" | "fallback";
+  source: "openrouter" | "pricetoken" | "fallback";
 }
