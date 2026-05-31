@@ -29,34 +29,50 @@ Search the codebase for AI provider SDKs, library imports, or direct HTTP API ca
   - `completion(`, `acompletion(` (LiteLLM)
   - `POST` to `.../completions` or `.../chat/completions` (Direct REST)
 
-### 2. Implement Surgical Hook (Non-Blocking)
-Instead of wrapping your logic, add a fire-and-forget call immediately after the AI response is received. This ensures **zero impact** on user-facing latency.
+### 2. Implement Surgical Hook (Pro Pattern)
+To ensure 100% reliability without adding latency to your user, use the **Pro Pattern**. This ensures the telemetry is sent even if the main response has already been returned.
 
-**Step-by-Step Implementation:**
-1. Capture the **Start Time** before the AI call.
-2. Execute the AI call normally.
-3. Calculate **Latency** and extract usage metadata.
-4. **Important**: Use the `void` operator or do not `await` the telemetry fetch.
+#### JavaScript (Next.js / Vercel)
+Leverage `waitUntil` (Next.js 14) or `after` (Next.js 15) to keep the execution environment alive.
 
 ```ts
-// Example Integration
-const start = Date.now();
-const response = await provider.call(...); // Your normal code
-const latency = Date.now() - start;
+import { waitUntil } from "@vercel/functions";
 
-// Non-blocking telemetry
-void fetch(process.env.ACOST_BASE_URL!, {
-  method: "POST",
-  headers: { "x-api-key": process.env.ACOST_API_KEY! },
-  body: JSON.stringify({
-    event: {
-      userId: user.id,
-      model: "custom-model",
-      latency,
-      rawResponse: response // Capture full provider JSON for deep debugging
-    }
-  })
-}).catch(() => {}); // Prevent telemetry errors from affecting main app
+// ... AI call happens ...
+
+waitUntil(
+  fetch(process.env.ACOST_BASE_URL!, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-api-key": process.env.ACOST_API_KEY! },
+    body: JSON.stringify({ event: { ...data } })
+  }).catch(() => {})
+);
+```
+
+#### Python (FastAPI / Starlette)
+Use `BackgroundTasks` to handle telemetry after the response is sent.
+
+```python
+from fastapi import BackgroundTasks
+
+async def track_telemetry(payload):
+    # standard requests.post call
+    pass
+
+@app.post("/ai-feature")
+async def ai_route(background_tasks: BackgroundTasks):
+    # ... AI call happens ...
+    background_tasks.add_task(track_telemetry, payload)
+    return {"result": response}
+```
+
+#### Go
+Use a simple goroutine for non-blocking ingestion.
+
+```go
+go func(p Payload) {
+    // execute standard http POST request
+}(payload)
 ```
 
 ### 3. Choose Ingestion Mode
@@ -94,25 +110,30 @@ ACOST_API_KEY=acost_your_secret_key
 #### 1. Single Event Mode
 Use this when your application processes requests one-by-one.
 
-**JavaScript (Node.js)**
+**JavaScript (Node.js / Vercel)**
 ```ts
-void fetch(process.env.ACOST_BASE_URL!, {
-  method: "POST",
-  headers: { "Content-Type": "application/json", "x-api-key": process.env.ACOST_API_KEY! },
-  body: JSON.stringify({
-    event: {
-      userId: user.id,
-      model: "gpt-4o",
-      feature: "chat-bot",
-      prompt: "What is the capital of France?",
-      responseContent: "The capital of France is Paris.",
-      inputTokens: result.usage.prompt_tokens,
-      outputTokens: result.usage.completion_tokens,
-      latency: 850,
-      rawResponse: result // Required: Always include full provider JSON
-    }
-  })
-}).catch(() => {});
+import { waitUntil } from "@vercel/functions";
+
+// In your API route...
+waitUntil(
+  fetch(process.env.ACOST_BASE_URL!, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-api-key": process.env.ACOST_API_KEY! },
+    body: JSON.stringify({
+      event: {
+        userId: user.id,
+        model: "gpt-4o",
+        feature: "chat-bot",
+        prompt: "What is the capital of France?",
+        responseContent: "The capital of France is Paris.",
+        inputTokens: result.usage.prompt_tokens,
+        outputTokens: result.usage.completion_tokens,
+        latency: 850,
+        rawResponse: result // Required: Always include full provider JSON
+      }
+    })
+  }).catch(() => {})
+);
 ```
 
 **Python**
@@ -162,38 +183,43 @@ payload := map[string]interface{}{
 #### 2. Batch Mode (Up to 100 events)
 Use this for background workers or high-volume ingestion.
 
-**JavaScript (Node.js)**
+**JavaScript (Node.js / Vercel)**
 ```ts
-void fetch(process.env.ACOST_BASE_URL!, {
-  method: "POST",
-  headers: { "Content-Type": "application/json", "x-api-key": process.env.ACOST_API_KEY! },
-  body: JSON.stringify({
-    events: [
-      {
-        userId: "user_1",
-        model: "gpt-4o",
-        feature: "chat-bot",
-        prompt: "Hello",
-        responseContent: "Hi!",
-        inputTokens: 900,
-        outputTokens: 240,
-        latency: 710,
-        rawResponse: { id: "chatcmpl-1" }
-      },
-      {
-        userId: "user_2",
-        model: "claude-3-5-sonnet",
-        feature: "summarizer",
-        prompt: "Summarize this...",
-        responseContent: "Summary...",
-        inputTokens: 1500,
-        outputTokens: 420,
-        latency: 1240,
-        rawResponse: { id: "chatcmpl-2" }
-      }
-    ]
-  })
-}).catch(() => {});
+import { waitUntil } from "@vercel/functions";
+
+// In your background worker...
+waitUntil(
+  fetch(process.env.ACOST_BASE_URL!, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-api-key": process.env.ACOST_API_KEY! },
+    body: JSON.stringify({
+      events: [
+        {
+          userId: "user_1",
+          model: "gpt-4o",
+          feature: "chat-bot",
+          prompt: "Hello",
+          responseContent: "Hi!",
+          inputTokens: 900,
+          outputTokens: 240,
+          latency: 710,
+          rawResponse: { id: "chatcmpl-1" }
+        },
+        {
+          userId: "user_2",
+          model: "claude-3-5-sonnet",
+          feature: "summarizer",
+          prompt: "Summarize this...",
+          responseContent: "Summary...",
+          inputTokens: 1500,
+          outputTokens: 420,
+          latency: 1240,
+          rawResponse: { id: "chatcmpl-2" }
+        }
+      ]
+    })
+  }).catch(() => {})
+);
 ```
 
 **Python**
