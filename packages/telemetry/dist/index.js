@@ -35,6 +35,12 @@ function readNonEmptyString(value) {
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : void 0;
 }
+function readString(value) {
+  if (typeof value !== "string") {
+    return void 0;
+  }
+  return value;
+}
 function readNumber(value) {
   if (typeof value === "number" && Number.isFinite(value)) {
     return value;
@@ -106,14 +112,14 @@ async function prepareEvents(supabase, workspaceId, events, options) {
     if (!feature) {
       return { error: "Bad Request: Each event must include a non-empty 'feature' string" };
     }
-    const prompt = readNonEmptyString(rawEvent.prompt);
-    if (!prompt) {
-      return { error: "Bad Request: Each event must include a non-empty 'prompt' string" };
+    const prompt = readString(rawEvent.prompt);
+    if (prompt === void 0) {
+      return { error: "Bad Request: Each event must include a 'prompt' string" };
     }
-    const responseContent = readNonEmptyString(rawEvent.responseContent);
-    if (!responseContent) {
+    const responseContent = readString(rawEvent.responseContent);
+    if (responseContent === void 0) {
       return {
-        error: "Bad Request: Each event must include a non-empty 'responseContent' string"
+        error: "Bad Request: Each event must include a 'responseContent' string"
       };
     }
     if (rawEvent.rawResponse === void 0 || rawEvent.rawResponse === null) {

@@ -109,6 +109,13 @@ function readNonEmptyString(value: unknown): string | undefined {
   return trimmed.length > 0 ? trimmed : undefined;
 }
 
+function readString(value: unknown): string | undefined {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+  return value;
+}
+
 function readNumber(value: unknown): number {
   if (typeof value === "number" && Number.isFinite(value)) {
     return value;
@@ -214,15 +221,15 @@ export async function prepareEvents(
       return { error: "Bad Request: Each event must include a non-empty 'feature' string" };
     }
 
-    const prompt = readNonEmptyString(rawEvent.prompt);
-    if (!prompt) {
-      return { error: "Bad Request: Each event must include a non-empty 'prompt' string" };
+    const prompt = readString(rawEvent.prompt);
+    if (prompt === undefined) {
+      return { error: "Bad Request: Each event must include a 'prompt' string" };
     }
 
-    const responseContent = readNonEmptyString(rawEvent.responseContent);
-    if (!responseContent) {
+    const responseContent = readString(rawEvent.responseContent);
+    if (responseContent === undefined) {
       return {
-        error: "Bad Request: Each event must include a non-empty 'responseContent' string",
+        error: "Bad Request: Each event must include a 'responseContent' string",
       };
     }
 

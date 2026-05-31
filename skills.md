@@ -76,7 +76,7 @@ ACOST_API_KEY=acost_your_secret_key
 - `model`: Exact model ID (e.g., `gpt-4o`, `claude-3-5-sonnet`).
 - `feature`: Product feature name (e.g., `chat-bot`).
 - `prompt`: The input text sent to the AI.
-- `responseContent`: The model's generated response.
+- `responseContent`: The model's generated response. Can be empty if the model uses reasoning fields (like `reasoning_content`) or was cut off.
 - `rawResponse`: The complete raw JSON response from the provider (crucial for auditing and deep debugging).
 - `inputTokens`: Token usage for the prompt.
 - `outputTokens`: Token usage for the response.
@@ -275,6 +275,8 @@ payload := map[string]interface{}{
 2. **If** token usage is missing from the provider response **Then** set `inputTokens` and `outputTokens` to `0` (do not guess).
 3. **If** `feature` is unknown **Then** default to `api-integration`.
 4. **If** any required field (`userId`, `model`, `feature`, `prompt`, `responseContent`, `rawResponse`, `inputTokens`, `outputTokens`) is missing **Then** the tracker will return a `400 Bad Request` error. Ensure these "Core Eight" fields are always captured.
+
+5. **Reasoning Models**: For models like DeepSeek v3/v4 or OpenAI o1 where the output may be in `reasoning_content`, you can pass an empty string to `responseContent` if `content` is null, but ensure the `rawResponse` contains the full object for auditing.
 
 ## Output Template for Agents
 When proposing an integration to a user:
