@@ -6,8 +6,7 @@
     "node": ">=20.0.0"
   },
   "scripts": {
-    "build": "pnpm --filter acost-sdk build && pnpm --filter web build",
-    "dev": "pnpm --filter web dev",
-    "test": "pnpm --filter acost-sdk test"
+    "build": "pnpm --filter web build",
+    "dev": "pnpm --filter web dev"
   }
 }
