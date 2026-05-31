@@ -53,7 +53,8 @@ ACOST_API_KEY=acost_your_secret_key`;
       "responseContent": "The capital of France is Paris.",
       "inputTokens": 1200,
       "outputTokens": 280,
-      "latency": 842
+      "latency": 842,
+      "rawResponse": { "id": "chatcmpl-123", "object": "chat.completion", "usage": { "prompt_tokens": 1200, "completion_tokens": 280, "total_tokens": 1480 } }
     }
   }'`;
 
@@ -77,7 +78,8 @@ await fetch(endpoint, {
       outputTokens: 280,
       latency: 842,
       createdAt: new Date().toISOString(),
-      // provider: "openrouter" // Optional: defaults to openai/pricetoken
+      rawResponse: { id: "chatcmpl-123", object: "chat.completion", usage: { ... } },
+      // provider: "openrouter" // Optional: defaults to pricetoken
     },
   }),
 });`;
@@ -97,7 +99,8 @@ payload = {
         "responseContent": "The capital of France is Paris.",
         "inputTokens": 1200,
         "outputTokens": 280,
-        "latency": 842
+        "latency": 842,
+        "rawResponse": {"id": "chatcmpl-123", "object": "chat.completion"}
     }
 }
 
@@ -131,6 +134,7 @@ func main() {
 			"inputTokens":     1200,
 			"outputTokens":    280,
 			"latency":         842,
+			"rawResponse":     map[string]interface{}{"id": "chatcmpl-123"},
 		},
 	}
 
@@ -161,6 +165,7 @@ func main() {
         inputTokens: 900,
         outputTokens: 240,
         latency: 710,
+        rawResponse: { id: "chatcmpl-1" },
       },
       {
         userId: "user_456",
@@ -171,6 +176,7 @@ func main() {
         inputTokens: 1500,
         outputTokens: 420,
         latency: 1240,
+        rawResponse: { id: "chatcmpl-2" },
       }
     ],
   }),
@@ -193,6 +199,7 @@ payload = {
             "inputTokens": 900,
             "outputTokens": 240,
             "latency": 710,
+            "rawResponse": {"id": "chatcmpl-1"}
         },
         {
             "userId": "user_456",
@@ -203,6 +210,7 @@ payload = {
             "inputTokens": 1500,
             "outputTokens": 420,
             "latency": 1240,
+            "rawResponse": {"id": "chatcmpl-2"}
         }
     ]
 }
@@ -238,6 +246,7 @@ func main() {
 				"inputTokens":     900,
 				"outputTokens":    240,
 				"latency":         710,
+				"rawResponse":     map[string]interface{}{"id": "chatcmpl-1"},
 			},
 			{
 				"userId":          "user_456",
@@ -248,6 +257,7 @@ func main() {
 				"inputTokens":     1500,
 				"outputTokens":    420,
 				"latency":         1240,
+				"rawResponse":     map[string]interface{}{"id": "chatcmpl-2"},
 			},
 		},
 	}
@@ -457,6 +467,7 @@ func main() {
                       { f: "responseContent", t: "string", s: "Required", desc: "The generated text response from the model." },
                       { f: "inputTokens", t: "number", s: "Required", desc: "Prompt token count." },
                       { f: "outputTokens", t: "number", s: "Required", desc: "Completion token count." },
+                      { f: "rawResponse", t: "object", s: "Required", desc: "Full provider JSON response (crucial for auditing)." },
                       { f: "provider", t: "string", s: "Optional", desc: "AI vendor. Defaults to PriceToken.ai rates if omitted." },
                       { f: "latency", t: "number", s: "Optional", desc: "Request duration in milliseconds." },
                       { f: "estimatedCost", t: "number", s: "Optional", desc: "Manual cost override. If omitted, acost will calculate this using model metadata." }

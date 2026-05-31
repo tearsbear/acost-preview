@@ -32,7 +32,8 @@ ACOST_API_KEY=acost_your_secret_key`;
       outputTokens: 260,
       latency: 920,
       createdAt: new Date().toISOString(),
-      // provider: "openrouter" // Optional: defaults to openai/pricetoken
+      rawResponse: { id: "chatcmpl-123", model: "gpt-4o-mini", usage: { ... } },
+      // provider: "openrouter" // Optional: defaults to pricetoken
     },
   }),
 });`;
@@ -52,7 +53,8 @@ payload = {
         "responseContent": "1. Verify email\\n2. Add profile photo\\n3. Join slack channel",
         "inputTokens": 1100,
         "outputTokens": 260,
-        "latency": 920
+        "latency": 920,
+        "rawResponse": {"id": "chatcmpl-123", "model": "gpt-4o-mini", "usage": {"total_tokens": 1360}}
     }
 }
 
@@ -86,6 +88,7 @@ func main() {
 			"inputTokens":     1100,
 			"outputTokens":    260,
 			"latency":         920,
+			"rawResponse":     map[string]interface{}{"id": "chatcmpl-123"},
 		},
 	}
 

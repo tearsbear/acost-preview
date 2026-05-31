@@ -143,6 +143,9 @@ async function prepareEvents(supabase, workspaceId, events, options) {
         error: "Bad Request: Each event must include a non-empty 'responseContent' string"
       };
     }
+    if (rawEvent.rawResponse === void 0 || rawEvent.rawResponse === null) {
+      return { error: "Bad Request: Each event must include 'rawResponse'" };
+    }
     if (rawEvent.inputTokens === void 0 || rawEvent.inputTokens === null) {
       return { error: "Bad Request: Each event must include 'inputTokens'" };
     }
@@ -151,8 +154,9 @@ async function prepareEvents(supabase, workspaceId, events, options) {
       return { error: "Bad Request: Each event must include 'outputTokens'" };
     }
     const outTokens = readNumber(rawEvent.outputTokens);
-    const provider = readNonEmptyString(rawEvent.provider) ?? options.defaultProvider;
+    const rawProvider = readNonEmptyString(rawEvent.provider);
     const model = readNonEmptyString(rawEvent.model) ?? options.defaultModel;
+    const provider = rawProvider?.toLowerCase() === "openrouter" ? "openrouter" : "pricetoken";
     const userId = readNonEmptyString(rawEvent.userId) ?? readNonEmptyString(rawEvent.user);
     if (options.requireUserId && !userId) {
       return { error: "Bad Request: Each event must include userId" };
@@ -165,19 +169,27 @@ async function prepareEvents(supabase, workspaceId, events, options) {
       const providerLower = provider?.toLowerCase();
       const pricingSource = providerLower === "openrouter" ? "openrouter" : "pricetoken";
       let normalizedModel = model.toLowerCase();
-      if (providerLower && normalizedModel.startsWith(`${providerLower}/`)) {
-        normalizedModel = normalizedModel.replace(`${providerLower}/`, "");
+      if (normalizedModel.includes("/")) {
+        normalizedModel = normalizedModel.split("/").pop() || normalizedModel;
       }
-      const modelPricing = pricing[`${normalizedModel}:${pricingSource}`];
+      let modelPricing = pricing[`${normalizedModel}:${pricingSource}`];
+      if (!modelPricing) {
+        const firstMatchKey = Object.keys(pricing).find((k) => k.startsWith(`${normalizedModel}:`));
+        if (firstMatchKey) {
+          modelPricing = pricing[firstMatchKey];
+        }
+      }
       if (modelPricing) {
         estimatedCost = inTokens * modelPricing.inputPrice + outTokens * modelPricing.outputPrice;
+      } else {
+        estimatedCost = inTokens * 2e-6 + outTokens * 8e-6;
       }
     }
     dbEvents.push({
       workspace_id: workspaceId,
       feature,
       model: model ?? "unknown",
-      provider: provider ?? "openai",
+      provider: provider ?? "unknown",
       input_tokens: inTokens,
       output_tokens: outTokens,
       estimated_cost: estimatedCost,

@@ -168,6 +168,7 @@ ACOST_API_KEY=acost_your_secret_key`;
       outputTokens: 240,
       estimatedCost: 0.00192,
       latency: 710,
+      rawResponse: { id: "chatcmpl-123", model: "gpt-4o-mini", usage: { ... } },
     },
   }),
 });`;

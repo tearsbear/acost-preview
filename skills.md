@@ -71,25 +71,30 @@ ACOST_BASE_URL=https://tracker-acost.vercel.app/v1/track
 ACOST_API_KEY=acost_your_secret_key
 ```
 
-### Required Fields (The "Core Two")
+### Required Fields (The "Core Eight")
 - `userId`: Unique identifier for your end-user.
 - `model`: Exact model ID (e.g., `gpt-4o`, `claude-3-5-sonnet`).
-
-### Recommended Fields
-- `provider`: Use `openrouter` for market-proxy pricing. Defaults to official `pricetoken` rates if omitted or unlisted.
+- `feature`: Product feature name (e.g., `chat-bot`).
+- `prompt`: The input text sent to the AI.
+- `responseContent`: The model's generated response.
+- `rawResponse`: The complete raw JSON response from the provider (crucial for auditing and deep debugging).
 - `inputTokens`: Token usage for the prompt.
 - `outputTokens`: Token usage for the response.
+
+### Recommended Fields
 - `latency`: Duration in milliseconds.
-- `feature`: Product feature name (e.g., `chat-bot`).
+- `provider`: Use `openrouter` for market-proxy pricing. Defaults to official `pricetoken` rates if omitted or unlisted.
 
 ### Optional Metadata
-- `prompt`: The user's input prompt (useful for debugging/logging).
-- `responseContent`: The model's generated response.
 - `estimatedCost`: Manual cost override. acost will calculate this automatically using model metadata if omitted.
 - `createdAt`: ISO 8601 timestamp. Defaults to current time.
-- `rawResponse`: The complete raw JSON response from the provider.
 
-### Single Event Example (Node.js)
+### Implementation Examples
+
+#### 1. Single Event Mode
+Use this when your application processes requests one-by-one.
+
+**JavaScript (Node.js)**
 ```ts
 void fetch(process.env.ACOST_BASE_URL!, {
   method: "POST",
@@ -104,10 +109,161 @@ void fetch(process.env.ACOST_BASE_URL!, {
       inputTokens: result.usage.prompt_tokens,
       outputTokens: result.usage.completion_tokens,
       latency: 850,
-      rawResponse: result // Full provider JSON for deep debugging
+      rawResponse: result // Required: Always include full provider JSON
     }
   })
-}).catch(() => {}); // Silent catch to ensure main thread safety
+}).catch(() => {});
+```
+
+**Python**
+```python
+import requests
+import os
+
+payload = {
+    "event": {
+        "userId": "user_123",
+        "model": "gpt-4o",
+        "feature": "chat-bot",
+        "prompt": "What is the capital of France?",
+        "responseContent": "The capital of France is Paris.",
+        "inputTokens": 1200,
+        "outputTokens": 280,
+        "latency": 842,
+        "rawResponse": {"id": "chatcmpl-123", "object": "chat.completion"}
+    }
+}
+
+requests.post(
+    os.environ.get("ACOST_BASE_URL"),
+    json=payload,
+    headers={"x-api-key": os.environ.get("ACOST_API_KEY")}
+)
+```
+
+**Go**
+```go
+payload := map[string]interface{}{
+    "event": map[string]interface{}{
+        "userId":          "user_123",
+        "model":           "gpt-4o",
+        "feature":         "chat-bot",
+        "prompt":          "What is the capital of France?",
+        "responseContent": "The capital of France is Paris.",
+        "inputTokens":     1200,
+        "outputTokens":    280,
+        "latency":         842,
+        "rawResponse":     map[string]interface{}{"id": "chatcmpl-123"},
+    },
+}
+// ... execute standard http POST request ...
+```
+
+#### 2. Batch Mode (Up to 100 events)
+Use this for background workers or high-volume ingestion.
+
+**JavaScript (Node.js)**
+```ts
+void fetch(process.env.ACOST_BASE_URL!, {
+  method: "POST",
+  headers: { "Content-Type": "application/json", "x-api-key": process.env.ACOST_API_KEY! },
+  body: JSON.stringify({
+    events: [
+      {
+        userId: "user_1",
+        model: "gpt-4o",
+        feature: "chat-bot",
+        prompt: "Hello",
+        responseContent: "Hi!",
+        inputTokens: 900,
+        outputTokens: 240,
+        latency: 710,
+        rawResponse: { id: "chatcmpl-1" }
+      },
+      {
+        userId: "user_2",
+        model: "claude-3-5-sonnet",
+        feature: "summarizer",
+        prompt: "Summarize this...",
+        responseContent: "Summary...",
+        inputTokens: 1500,
+        outputTokens: 420,
+        latency: 1240,
+        rawResponse: { id: "chatcmpl-2" }
+      }
+    ]
+  })
+}).catch(() => {});
+```
+
+**Python**
+```python
+import requests
+import os
+
+payload = {
+    "events": [
+        {
+            "userId": "user_1",
+            "model": "gpt-4o",
+            "feature": "chat-bot",
+            "prompt": "Hello",
+            "responseContent": "Hi!",
+            "inputTokens": 900,
+            "outputTokens": 240,
+            "latency": 710,
+            "rawResponse": {"id": "chatcmpl-1"}
+        },
+        {
+            "userId": "user_2",
+            "model": "claude-3-5-sonnet",
+            "feature": "summarizer",
+            "prompt": "Summarize this...",
+            "responseContent": "Summary...",
+            "inputTokens": 1500,
+            "outputTokens": 420,
+            "latency": 1240,
+            "rawResponse": {"id": "chatcmpl-2"}
+        }
+    ]
+}
+
+requests.post(
+    os.environ.get("ACOST_BASE_URL"),
+    json=payload,
+    headers={"x-api-key": os.environ.get("ACOST_API_KEY")}
+)
+```
+
+**Go**
+```go
+payload := map[string]interface{}{
+    "events": []map[string]interface{}{
+        {
+            "userId":          "user_1",
+            "model":           "gpt-4o",
+            "feature":         "chat-bot",
+            "prompt":          "Hello",
+            "responseContent": "Hi!",
+            "inputTokens":     900,
+            "outputTokens":    240,
+            "latency":         710,
+            "rawResponse":     map[string]interface{}{"id": "chatcmpl-1"},
+        },
+        {
+            "userId":          "user_2",
+            "model":           "claude-3-5-sonnet",
+            "feature":         "summarizer",
+            "prompt":          "Summarize this...",
+            "responseContent": "Summary...",
+            "inputTokens":     1500,
+            "outputTokens":    420,
+            "latency":         1240,
+            "rawResponse":     map[string]interface{}{"id": "chatcmpl-2"},
+        },
+    },
+}
+// ... execute standard http POST request ...
 ```
 
 ## Guardrails & Constraints
@@ -118,7 +274,7 @@ void fetch(process.env.ACOST_BASE_URL!, {
 1. **If** `ACOST_API_KEY` is missing **Then** skip telemetry entirely to prevent application crashes.
 2. **If** token usage is missing from the provider response **Then** set `inputTokens` and `outputTokens` to `0` (do not guess).
 3. **If** `feature` is unknown **Then** default to `api-integration`.
-4. **If** any required field (`userId`, `model`) is missing **Then** the tracker will return a `400 Bad Request` error. Ensure these "Core Two" fields are always captured.
+4. **If** any required field (`userId`, `model`, `feature`, `prompt`, `responseContent`, `rawResponse`, `inputTokens`, `outputTokens`) is missing **Then** the tracker will return a `400 Bad Request` error. Ensure these "Core Eight" fields are always captured.
 
 ## Output Template for Agents
 When proposing an integration to a user:

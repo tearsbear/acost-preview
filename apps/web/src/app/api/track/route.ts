@@ -30,7 +30,6 @@ export async function POST(request: NextRequest) {
       keyId: apiKeyRecord.keyId,
       events: extracted.events,
       validation: {
-        defaultProvider: "openai",
         defaultModel: "unknown",
         defaultFeature: "api-ingestion",
       },

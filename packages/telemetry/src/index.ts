@@ -226,6 +226,10 @@ export async function prepareEvents(
       };
     }
 
+    if (rawEvent.rawResponse === undefined || rawEvent.rawResponse === null) {
+      return { error: "Bad Request: Each event must include 'rawResponse'" };
+    }
+
     if (rawEvent.inputTokens === undefined || rawEvent.inputTokens === null) {
       return { error: "Bad Request: Each event must include 'inputTokens'" };
     }
