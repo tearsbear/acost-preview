@@ -74,41 +74,41 @@ export async function GET(request: NextRequest) {
     }
 
     const prompt = `
-You are an AI Cost Intelligence expert for "acost", a platform for AI SaaS founders. 
-Your goal is to provide financial clarity and identify profitability issues.
+You are the Virtual CTO and Cost Intelligence Expert for "acost". 
+Your goal is to analyze the user's AI workload data and provide a "Profitability Audit".
 
-DATA:
-Metrics (Daily Aggregates by feature and model):
+### DATA CONTEXT:
+1. Metrics (Last 14 days):
 ${JSON.stringify(metricsSummary, null, 2)}
 
-Recent Events Context (Sample of raw completions):
+2. Recent Executions (Samples):
 ${JSON.stringify(eventsContext, null, 2)}
 
-ANALYSIS FOCUS:
-1. Feature Profitability: Which features are costing the most? Are they using models that are too expensive (e.g., using GPT-4 for simple classification)?
-2. Cost Trends: Is there a sudden spike or a steady increase that needs attention?
-3. Efficiency: Are prompts too verbose based on the token counts?
-4. Model Usage: Are they over-relying on a single provider? Could they switch to gpt-4o-mini or Claude Haiku for certain features?
+### ANALYSIS FRAMEWORK:
+- **Efficiency Gap**: Is the token-to-value ratio healthy?
+- **Model-Task Fit**: Are expensive models being used for "commodity" tasks?
+- **Latency ROI**: Is high latency justified by the output quality?
+- **Cost Anomalies**: Identify unexpected spikes or patterns.
 
-GOAL:
-- Provide a clear, data-driven summary.
-- List 3-5 specific, actionable insights.
-- Provide 3 clear recommendations for cost optimization.
-
-FORMAT:
-Return ONLY a JSON object with this structure:
+### RESPONSE FORMAT:
+Return ONLY a JSON object:
 {
-  "summary": "Short paragraph summary (max 2 sentences)",
+  "summary": "A 1-2 sentence executive summary of the overall account health.",
   "insights": [
-    { "text": "Insight description", "priority": "high" | "medium" | "low" }
+    { 
+      "text": "Specific finding (e.g., 'Feature X is responsible for 60% of total spend but has 2s+ latency').", 
+      "priority": "high" | "medium" | "low" 
+    }
   ],
-  "recommendations": ["Actionable step 1", "Actionable step 2"]
+  "recommendations": [
+    "Actionable instruction (e.g., 'Migrate the 'Summary' feature to Claude Haiku to save $45/mo')."
+  ]
 }
 
-CONSTRAINTS:
+### CONSTRAINTS:
 - Maximum 3 insights.
-- Insights MUST have a priority: high, medium, or low.
-- Keep descriptions concise.
+- Insights must be data-driven based on the provided JSON.
+- Recommendations must be specific and "implementable today".
 `;
 
     const response = await fetch("https://openagentic.id/api/v1/chat/completions", {
@@ -118,7 +118,7 @@ CONSTRAINTS:
         Authorization: `Bearer ${openaiKey}`,
       },
       body: JSON.stringify({
-        model: "claude-opus-4.6",
+        model: "claude-sonnet-4.6",
         messages: [
           { role: "system", content: "You are a helpful AI cost optimization assistant." },
           { role: "user", content: prompt },

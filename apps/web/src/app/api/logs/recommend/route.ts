@@ -38,30 +38,31 @@ export async function POST(request: NextRequest) {
     }
 
     const prompt = `
-You are an AI Optimization Expert. Analyze this specific AI execution log and provide a concise recommendation for improvement.
+You are a Senior AI Platform Engineer specializing in Cost & Performance Optimization. 
+Analyze the following single execution log from "acost" and provide a high-impact, actionable recommendation.
 
-LOG DATA:
-Feature: ${log.feature}
-Model: ${log.model}
-Latency: ${log.latency}ms
-Cost: $${log.estimated_cost}
-Input Tokens: ${log.input_tokens}
-Output Tokens: ${log.output_tokens}
+### LOG DATA:
+- Feature: ${log.feature}
+- Model: ${log.model}
+- Latency: ${log.latency}ms
+- Cost: $${log.estimated_cost}
+- Token Usage: ${log.input_tokens} (Input) / ${log.output_tokens} (Output)
 
-PROMPT (INPUT):
-${log.prompt || "N/A"}
+### CONTENT:
+- Prompt: "${log.prompt || "N/A"}"
+- Response: "${log.response_content || "N/A"}"
 
-RESPONSE (OUTPUT):
-${log.response_content || "N/A"}
+### YOUR TASK:
+Provide a concise, 2-3 sentence recommendation using this structure:
+1. **The Issue**: Identify the primary bottleneck (e.g., model overkill, prompt verbosity, or high latency).
+2. **The Fix**: Give a specific, technical instruction (e.g., "Switch to gpt-4o-mini", "Remove redundant examples from the prompt").
+3. **The Benefit**: Estimate the impact (e.g., "This will reduce cost by ~80% with negligible quality loss").
 
-GOAL:
-Provide a 2-3 sentence actionable recommendation. Focus on:
-- Prompt engineering improvements (shorter prompt, better instructions).
-- Model switching (could a cheaper model do this?).
-- Latency issues.
-- Cost-saving opportunities.
-
-Return ONLY the recommendation text.
+### CONSTRAINTS:
+- Use a professional, direct tone.
+- Do NOT use markdown code blocks.
+- Focus on the biggest "win" for this specific log.
+- Return ONLY the recommendation text.
 `;
 
     const response = await fetch("https://openagentic.id/api/v1/chat/completions", {
