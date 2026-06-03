@@ -20,9 +20,21 @@ export function Footer() {
 
         {/* Center: Menu */}
         <div className="flex gap-8 text-xs font-medium text-muted">
-          <Link href="/providers" className="hover:text-primary transition-colors">Supported Providers</Link>
-          <Link href="/docs" className="hover:text-primary transition-colors">Documentation</Link>
-          <Link href="#" className="hover:text-primary transition-colors">Privacy Policy</Link>
+          <Link
+            href="/providers"
+            className="hover:text-primary transition-colors"
+          >
+            Supported Providers
+          </Link>
+          <Link href="/docs" className="hover:text-primary transition-colors">
+            Documentation
+          </Link>
+          <Link
+            href="/privacy"
+            className="hover:text-primary transition-colors"
+          >
+            Privacy Policy
+          </Link>
         </div>
 
         {/* Right: Copyright */}
