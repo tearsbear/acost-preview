@@ -249,7 +249,7 @@ export function RunDetailDrawer({ event, onClose }: RunDetailDrawerProps) {
           style={{ scrollbarGutter: "stable" }}
         >
           {/* AI Recommendation Section */}
-          <div className="px-6 py-4 border-b border-border bg-gradient-to-br from-accent/5 to-transparent">
+          <div className="px-6 py-6 border-b border-border bg-gradient-to-br from-accent/5 to-transparent">
             {syncingRecommendation ? (
               <div className="flex items-center justify-center py-4 gap-2 text-muted">
                 <RefreshCw className="w-4 h-4 animate-spin text-accent" />
@@ -259,7 +259,7 @@ export function RunDetailDrawer({ event, onClose }: RunDetailDrawerProps) {
               <button
                 onClick={generateRecommendation}
                 disabled={loadingRecommend}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-lg border border-accent/20 bg-accent/5 hover:bg-accent/10 transition-colors group disabled:opacity-50"
+                className="w-full flex items-center justify-center gap-2 py-4 rounded-xl border border-accent/20 bg-accent/5 hover:bg-accent/10 transition-all group disabled:opacity-50"
               >
                 {loadingRecommend ? (
                   <>
@@ -274,24 +274,27 @@ export function RunDetailDrawer({ event, onClose }: RunDetailDrawerProps) {
                 )}
               </button>
             ) : (
-              <div className="space-y-3 animate-fade-in">
+              <div className="space-y-4 animate-fade-in">
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-2">
                     <Sparkles className="w-4 h-4 text-accent" />
-                    <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted">
-                      AI RECOMMENDATION
+                    <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-accent">
+                      AI Audit Recommendation
                     </h4>
                   </div>
                   <button
                     onClick={generateRecommendation}
                     disabled={loadingRecommend}
-                    className="text-[10px] font-bold text-accent hover:underline disabled:no-underline"
+                    className="text-[10px] font-bold text-muted hover:text-accent transition-colors disabled:no-underline"
                   >
-                    {loadingRecommend ? "Updating..." : "Regenerate"}
+                    {loadingRecommend ? "Updating..." : "Refresh Audit"}
                   </button>
                 </div>
-                <div className="p-4 bg-canvas/40 border border-accent/10 rounded-xl">
-                  <p className="text-sm text-secondary leading-relaxed italic">
+                <div className="p-5 bg-canvas/60 border border-accent/20 rounded-2xl shadow-sm relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 p-3 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity">
+                    <Sparkles className="w-12 h-12 text-accent" />
+                  </div>
+                  <p className="text-sm text-secondary leading-relaxed font-medium italic relative z-10">
                     &quot;{formatText(recommendation)}&quot;
                   </p>
                 </div>

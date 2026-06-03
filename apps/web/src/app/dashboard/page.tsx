@@ -95,10 +95,11 @@ export default function DashboardPage() {
     }
   };
 
-  const fetchAIInsights = async () => {
+  const fetchAIInsights = async (force = false) => {
     setLoadingInsights(true);
     try {
-      const response = await fetch("/api/dashboard/insights");
+      const url = force ? "/api/dashboard/insights?refresh=true" : "/api/dashboard/insights";
+      const response = await fetch(url);
       const result = await response.json();
       if (result && !result.error) {
         setInsights(result);
@@ -394,7 +395,7 @@ ACOST_API_KEY=acost_your_secret_key`;
                 </Link>
                 <div className="w-px h-3 bg-border" />
                 <button
-                  onClick={fetchAIInsights}
+                  onClick={() => fetchAIInsights(true)}
                   disabled={loadingInsights}
                   className="text-[10px] font-bold uppercase tracking-wider text-muted hover:text-accent transition-colors disabled:opacity-50"
                 >
@@ -403,14 +404,11 @@ ACOST_API_KEY=acost_your_secret_key`;
               </div>
             </div>
 
-            {loadingInsights && !insights ? (
-              <div className="space-y-4 animate-pulse">
-                <div className="h-4 bg-border/50 rounded w-3/4"></div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="h-24 bg-border/30 rounded-xl"></div>
-                  <div className="h-24 bg-border/30 rounded-xl"></div>
-                  <div className="h-24 bg-border/30 rounded-xl"></div>
-                </div>
+            {loadingInsights ? (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {[0, 1, 2].map((i) => (
+                  <div key={i} className="p-4 bg-canvas/40 border border-border rounded-xl h-24 animate-pulse" />
+                ))}
               </div>
             ) : insights ? (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

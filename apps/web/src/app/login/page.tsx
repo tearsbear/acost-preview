@@ -105,16 +105,14 @@ export default function Login() {
           </button>
         </form>
 
-        <p className="text-center text-sm text-muted mt-6">
-          Don't have an account?{" "}
-          {process.env.NEXT_PUBLIC_ALLOW_REGISTER === "true" ? (
+        {process.env.NEXT_PUBLIC_ALLOW_REGISTER === "true" && (
+          <p className="text-center text-sm text-muted mt-6">
+            Don't have an account?{" "}
             <Link href="/signup" className="text-accent hover:underline font-semibold">
               Sign up for free
             </Link>
-          ) : (
-            <span className="opacity-50 cursor-not-allowed">Sign up (Disabled)</span>
-          )}
-        </p>
+          </p>
+        )}
       </div>
     </main>
   );

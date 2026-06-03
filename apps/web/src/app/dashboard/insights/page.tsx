@@ -14,10 +14,11 @@ export default function InsightsPage() {
   const [insights, setInsights] = useState<AIInsightsData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchInsights = async () => {
+  const fetchInsights = async (force = false) => {
     setLoading(true);
     try {
-      const response = await fetch("/api/dashboard/insights");
+      const url = force ? "/api/dashboard/insights?refresh=true" : "/api/dashboard/insights";
+      const response = await fetch(url);
       const result = await response.json();
       if (result && !result.error) {
         setInsights(result);
@@ -62,7 +63,7 @@ export default function InsightsPage() {
           </div>
         </div>
         <button
-          onClick={fetchInsights}
+          onClick={() => fetchInsights(true)}
           disabled={loading}
           className="button-spring flex items-center gap-2 px-4 py-2 bg-surface hover:bg-elevated/40 border border-border text-secondary hover:text-primary rounded-md text-xs font-semibold shadow-sm"
         >

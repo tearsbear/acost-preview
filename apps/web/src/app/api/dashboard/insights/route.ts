@@ -29,6 +29,36 @@ export async function GET(request: NextRequest) {
     }
 
     const workspaceId = workspaces[0].id;
+    const { searchParams } = new URL(request.url);
+    const forceRefresh = searchParams.get("refresh") === "true";
+
+    // 1. Check Cache first (1 hour TTL)
+    if (!forceRefresh) {
+      const { data: cachedData, error: cacheError } = await supabase
+        .from("ai_insights_cache")
+        .select("*")
+        .eq("workspace_id", workspaceId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+
+      if (!cacheError && cachedData) {
+        const createdAt = new Date(cachedData.created_at).getTime();
+        const now = new Date().getTime();
+        const oneHour = 60 * 60 * 1000;
+
+        if (now - createdAt < oneHour) {
+          console.log("Returning cached AI insights");
+          return NextResponse.json({
+            summary: cachedData.summary,
+            insights: cachedData.insights,
+            recommendations: cachedData.recommendations,
+            cached: true,
+            cachedAt: cachedData.created_at
+          });
+        }
+      }
+    }
 
     // Fetch Daily Metrics (last 30 days)
     const { data: dailyMetrics } = await supabase
@@ -149,6 +179,16 @@ Return ONLY a JSON object:
       }
       
       const insights = JSON.parse(content);
+
+      // 3. Persist to cache (always insert new record, retrieval gets latest)
+      await supabase.from("ai_insights_cache").insert({
+        workspace_id: workspaceId,
+        summary: insights.summary,
+        insights: insights.insights,
+        recommendations: insights.recommendations,
+        created_at: new Date().toISOString(),
+      });
+
       return NextResponse.json(insights);
     } catch (parseError) {
       console.error("Failed to parse AI insights JSON:", parseError);

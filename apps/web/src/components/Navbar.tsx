@@ -28,9 +28,22 @@ export function Navbar({ user, allowRegister = true }: NavbarProps) {
 
         {/* Center: Navigation Menu */}
         <div className="hidden md:flex items-center gap-8 text-sm font-medium text-secondary">
-          <Link href="/#features" className="hover:text-primary transition-colors">Features</Link>
-          <Link href="/providers" className="hover:text-primary transition-colors">Providers</Link>
-          <Link href="/docs" className="hover:text-primary transition-colors">Documentation</Link>
+          <Link href="/#features" className="hover:text-primary transition-all duration-300 relative group">
+            Features
+            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-accent transition-all duration-300 group-hover:w-full" />
+          </Link>
+          <Link href="/providers" className="hover:text-primary transition-all duration-300 relative group">
+            Providers
+            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-accent transition-all duration-300 group-hover:w-full" />
+          </Link>
+          <Link href="/docs" className="hover:text-primary transition-all duration-300 relative group">
+            Docs
+            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-accent transition-all duration-300 group-hover:w-full" />
+          </Link>
+          <Link href="/#whitelist" className="hover:text-primary transition-all duration-300 relative group">
+            Whitelist
+            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-accent transition-all duration-300 group-hover:w-full" />
+          </Link>
         </div>
 
         {/* Right: Actions */}

@@ -20,6 +20,9 @@ import DotGrid from "@/components/DotGrid";
 import { Navbar } from "@/components/Navbar";
 import { FAQAccordion } from "@/components/FAQAccordion";
 import { Footer } from "@/components/Footer";
+import { WhitelistForm } from "@/components/WhitelistForm";
+import { ShowcaseCard } from "@/components/ShowcaseCard";
+import { LogsShowcase } from "@/components/LogsShowcase";
 
 export default async function Home() {
   const supabase = createSupabaseServerClient();
@@ -32,13 +35,13 @@ export default async function Home() {
       <Navbar user={user} allowRegister={allowRegister} />
 
       {/* Hero Section */}
-      <section className="relative pt-32 pb-20 md:pt-48 md:pb-32 overflow-hidden border-b border-border">
+      <section className="relative pt-24 pb-16 md:pt-32 md:pb-24 overflow-hidden border-b border-border">
         <div className="absolute inset-0 z-0 text-zinc-400 dark:text-zinc-600">
           <DotGrid 
             dotSize={4}
             gap={32}
             baseColor="currentColor"
-            activeColor="#3b82f6"
+            activeColor="#F97316"
             proximity={120}
             shockRadius={250}
             shockStrength={5}
@@ -52,9 +55,9 @@ export default async function Home() {
             <Zap className="w-3 h-3 text-accent" />
             Telemetry for AI Teams
           </div>
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-display font-semibold tracking-tight text-primary mb-8 leading-[1.05] animate-fade-in delay-100 mx-auto">
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-display font-semibold tracking-tight text-primary mb-8 leading-[1.05] animate-fade-in delay-100 mx-auto">
             Turns your AI expenses into <br />
-            <span className="text-orange-500 italic text-4xl md:text-6xl lg:text-7xl">actionable business insights.</span>
+            <span className="text-orange-500 italic text-3xl md:text-5xl lg:text-6xl">actionable business insights.</span>
           </h1>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in delay-300">
             {user ? (
@@ -85,32 +88,14 @@ export default async function Home() {
               </>
             )}
           </div>
-        </div>
-      </section>
 
-      {/* Social Proof / Trusted By */}
-      <section className="py-12 bg-surface/50 border-b border-border">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col items-center">
-          
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 animate-fade-in delay-200">
-            {[
-              "Support for OpenAI, Anthropic, Google, and more",
-              "Measure tokens, cost, and latency in real-time",
-              "Integrate with a high-performance API tracker",
-            ].map((item) => (
-              <div
-                key={item}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-surface border border-border text-secondary text-xs font-medium"
-              >
-                <Zap className="w-3 h-3 text-accent" />
-                {item}
-              </div>
-            ))}
+          <ShowcaseCard />
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Features Grid */}
+        <LogsShowcase />
+
+        {/* Features Grid */}
       <section id="official-support" className="py-24 md:py-32 border-b border-border bg-surface">
         <div className="max-w-7xl mx-auto px-6">
           <div className="mb-12">
@@ -263,7 +248,7 @@ export default async function Home() {
               </div>
               <h3 className="text-xl font-display font-semibold text-primary mb-3">Simple Integration</h3>
               <p className="text-secondary text-sm leading-relaxed">
-                Generate a workspace key and send telemetry via a simple REST API. No complex SDKs or proxying required.
+                Generate a workspace key and send telemetry via a simple REST API. No complex setup or proxying required.
               </p>
             </div>
 
@@ -313,9 +298,9 @@ export default async function Home() {
               <div className="w-16 h-16 rounded-full bg-canvas border-2 border-border flex items-center justify-center text-xl font-bold font-display mx-auto mb-8 relative z-10 shadow-sm group-hover:border-accent transition-colors duration-500">
                 01
               </div>
-              <h3 className="text-xl font-display font-semibold text-primary mb-4">Create API Key</h3>
+              <h3 className="text-xl font-display font-semibold text-primary mb-4">Get Your API Key</h3>
               <p className="text-muted text-sm leading-relaxed">
-                Generate a unique key for your workspace. Store it in your server-side environment variables.
+                Create a secure workspace key in seconds and add it to your server's environment variables.
               </p>
             </div>
 
@@ -323,9 +308,9 @@ export default async function Home() {
               <div className="w-16 h-16 rounded-full bg-canvas border-2 border-border flex items-center justify-center text-xl font-bold font-display mx-auto mb-8 relative z-10 shadow-sm group-hover:border-accent transition-colors duration-500">
                 02
               </div>
-              <h3 className="text-xl font-display font-semibold text-primary mb-4">Post Telemetry</h3>
+              <h3 className="text-xl font-display font-semibold text-primary mb-4">Send Telemetry</h3>
               <p className="text-muted text-sm leading-relaxed">
-                After your AI response finishes, send the metadata to our ingest endpoint. Use our SDK or a simple POST request.
+                After your AI response finishes, send the metadata to our ingest endpoint via a simple, non-blocking POST request.
               </p>
             </div>
 
@@ -333,9 +318,9 @@ export default async function Home() {
               <div className="w-16 h-16 rounded-full bg-canvas border-2 border-border flex items-center justify-center text-xl font-bold font-display mx-auto mb-8 relative z-10 shadow-sm group-hover:border-accent transition-colors duration-500">
                 03
               </div>
-              <h3 className="text-xl font-display font-semibold text-primary mb-4">View Analytics</h3>
+              <h3 className="text-xl font-display font-semibold text-primary mb-4">Optimize & Save</h3>
               <p className="text-muted text-sm leading-relaxed">
-                Open your dashboard to see real-time costs, token counts, and feature economics.
+                Get instant visibility into costs, token usage, and margins. Use AI-driven insights to cut spend immediately.
               </p>
             </div>
           </div>
@@ -436,6 +421,19 @@ export default async function Home() {
                       </div>
                     </div>
                   )
+                },
+                {
+                  q: "How secure is my data?",
+                  a: (
+                    <div className="space-y-4">
+                      <p>
+                        We do not store your provider API keys (OpenAI, Anthropic, etc.) on our servers. 
+                      </p>
+                      <p>
+                        For features like the AI Playground where you Bring Your Own Key (BYOK), we apply industry-standard AES-256 encryption. Your keys are only used to facilitate the request and are never persisted in plain text.
+                      </p>
+                    </div>
+                  )
                 }
               ]}
             />
@@ -444,45 +442,19 @@ export default async function Home() {
       </section>
 
       {/* Final CTA */}
-      <section className="py-24 md:py-32 bg-canvas">
+      <section id="whitelist" className="py-24 md:py-32 bg-canvas">
         <div className="max-w-4xl mx-auto px-6">
           <div className="fuser-card bg-surface border border-border p-12 md:p-20 text-center relative overflow-hidden group shadow-xl">
             <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-transparent pointer-events-none" />
             
             <div className="relative z-10">
               <h2 className="text-4xl md:text-5xl font-display font-semibold mb-8 tracking-tight text-primary">
-                Ready to understand your <br /> AI margins?
+                Join the whitelist
               </h2>
               <p className="text-muted text-lg mb-12 max-w-xl mx-auto">
-                Join founders who are building profitable AI products with real-time financial visibility.
+                Join founders who are building profitable AI products with real-time financial visibility. We'll let you know when we're ready for you.
               </p>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                {user ? (
-                  <Link
-                    href="/dashboard"
-                    className="button-spring w-full sm:w-auto px-8 py-4 bg-accent text-canvas font-bold rounded-full text-base shadow-lg"
-                  >
-                    Go to Dashboard
-                  </Link>
-                ) : (
-                  <>
-                    {allowRegister && (
-                      <Link
-                        href="/signup"
-                        className="button-spring w-full sm:w-auto px-8 py-4 bg-accent text-canvas font-bold rounded-full text-base shadow-lg"
-                      >
-                        Get Started Free
-                      </Link>
-                    )}
-                    <Link
-                      href="/docs"
-                      className="button-spring w-full sm:w-auto px-8 py-4 bg-surface hover:bg-elevated/40 border border-border text-secondary hover:text-primary font-bold rounded-full text-base shadow-sm"
-                    >
-                      Read the Docs
-                    </Link>
-                  </>
-                )}
-              </div>
+              <WhitelistForm />
             </div>
           </div>
         </div>
