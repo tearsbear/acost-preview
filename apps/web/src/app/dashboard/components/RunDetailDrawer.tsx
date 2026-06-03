@@ -291,9 +291,6 @@ export function RunDetailDrawer({ event, onClose }: RunDetailDrawerProps) {
                   </button>
                 </div>
                 <div className="p-5 bg-canvas/60 border border-accent/20 rounded-2xl shadow-sm relative overflow-hidden group">
-                  <div className="absolute top-0 right-0 p-3 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity">
-                    <Sparkles className="w-12 h-12 text-accent" />
-                  </div>
                   <p className="text-sm text-secondary leading-relaxed font-medium italic relative z-10">
                     &quot;{formatText(recommendation)}&quot;
                   </p>
