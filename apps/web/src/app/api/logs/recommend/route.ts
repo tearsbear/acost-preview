@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createSupabaseServerClient, createSupabaseAdminClient } from "@/lib/supabaseServer";
+import {
+  createSupabaseServerClient,
+  createSupabaseAdminClient,
+} from "@/lib/supabaseServer";
 
 export const dynamic = "force-dynamic";
 
@@ -18,10 +21,12 @@ export async function POST(request: NextRequest) {
     const { logId } = await request.json();
 
     if (!logId) {
-      return NextResponse.json({ error: "Log ID is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Log ID is required" },
+        { status: 400 },
+      );
     }
 
-    // Fetch the specific log entry
     const { data: log, error: logError } = await supabase
       .from("events")
       .select("*")
@@ -29,12 +34,18 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (logError || !log) {
-      return NextResponse.json({ error: "Log entry not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Log entry not found" },
+        { status: 404 },
+      );
     }
 
     const openaiKey = process.env.OPENAI_API_KEY;
     if (!openaiKey) {
-      return NextResponse.json({ error: "AI Service unavailable" }, { status: 503 });
+      return NextResponse.json(
+        { error: "AI Service unavailable" },
+        { status: 503 },
+      );
     }
 
     const prompt = `
@@ -65,35 +76,50 @@ Provide a concise, 2-3 sentence recommendation using this structure:
 - Return ONLY the recommendation text.
 `;
 
-    const response = await fetch("https://openagentic.id/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${openaiKey}`,
+    const response = await fetch(
+      "https://openagentic.id/api/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${openaiKey}`,
+        },
+        body: JSON.stringify({
+          model: "claude-sonnet-4.6",
+          messages: [
+            {
+              role: "system",
+              content: "You are a helpful AI optimization assistant.",
+            },
+            { role: "user", content: prompt },
+          ],
+        }),
       },
-      body: JSON.stringify({
-        model: "claude-sonnet-4.5",
-        messages: [
-          { role: "system", content: "You are a helpful AI optimization assistant." },
-          { role: "user", content: prompt },
-        ],
-      }),
-    });
+    );
 
-    const llmResult = await response.json();
-    
+    const rawText = await response.text();
+    const jsonEndIndex = rawText.lastIndexOf("}");
+    const cleanJson = rawText.substring(0, jsonEndIndex + 1);
+    const llmResult = JSON.parse(cleanJson);
+
     if (!response.ok) {
-      return NextResponse.json({ error: "AI Provider error" }, { status: 500 });
+      console.error("AI Provider error:", llmResult);
+      return NextResponse.json(
+        { error: llmResult?.error?.message || "AI Provider error" },
+        { status: 502 },
+      );
     }
 
     let recommendation = llmResult.choices[0].message.content;
-    
+
     // Clean up potential markdown
     if (recommendation.includes("```")) {
-      recommendation = recommendation.replace(/```[a-z]*\n/g, "").replace(/\n```/g, "").trim();
+      recommendation = recommendation
+        .replace(/```[a-z]*\n/g, "")
+        .replace(/\n```/g, "")
+        .trim();
     }
 
-    // Save/Update the recommendation in the events table
     // Use admin client to bypass RLS for system-level update
     const { error: updateError } = await adminSupabase
       .from("events")
@@ -102,12 +128,14 @@ Provide a concise, 2-3 sentence recommendation using this structure:
 
     if (updateError) {
       console.error("Failed to persist AI recommendation:", updateError);
-      // We still return the recommendation even if save fails, but log the error
     }
 
     return NextResponse.json({ recommendation });
   } catch (error: any) {
     console.error("Log Recommendation Error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }

@@ -157,7 +157,10 @@ Return ONLY a JSON object:
       }),
     });
 
-    const llmResult = await response.json();
+    const rawText = await response.text();
+    const jsonEndIndex = rawText.lastIndexOf("}");
+    const cleanJson = rawText.substring(0, jsonEndIndex + 1);
+    const llmResult = JSON.parse(cleanJson);
     
     if (!response.ok) {
       console.error("OpenAI API Error:", llmResult);
