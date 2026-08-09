@@ -40,10 +40,10 @@ export function Navbar({ user, allowRegister = true }: NavbarProps) {
             Docs
             <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-accent transition-all duration-300 group-hover:w-full" />
           </Link>
-          <Link href="/#whitelist" className="hover:text-primary transition-all duration-300 relative group">
+          {/* <Link href="/#whitelist" className="hover:text-primary transition-all duration-300 relative group">
             Whitelist
             <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-accent transition-all duration-300 group-hover:w-full" />
-          </Link>
+          </Link> */}
         </div>
 
         {/* Right: Actions */}

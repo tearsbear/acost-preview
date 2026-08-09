@@ -20,7 +20,7 @@ import DotGrid from "@/components/DotGrid";
 import { Navbar } from "@/components/Navbar";
 import { FAQAccordion } from "@/components/FAQAccordion";
 import { Footer } from "@/components/Footer";
-import { WhitelistForm } from "@/components/WhitelistForm";
+// import { WhitelistForm } from "@/components/WhitelistForm";
 import { ShowcaseCard } from "@/components/ShowcaseCard";
 import { LogsShowcase } from "@/components/LogsShowcase";
 
@@ -442,7 +442,7 @@ export default async function Home() {
       </section>
 
       {/* Final CTA */}
-      <section id="whitelist" className="py-24 md:py-32 bg-canvas">
+      {/* <section id="whitelist" className="py-24 md:py-32 bg-canvas">
         <div className="max-w-4xl mx-auto px-6">
           <div className="fuser-card bg-surface border border-border p-12 md:p-20 text-center relative overflow-hidden group shadow-xl">
             <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-transparent pointer-events-none" />
@@ -458,7 +458,7 @@ export default async function Home() {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Footer */}
       <Footer />
