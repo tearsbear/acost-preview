@@ -37,11 +37,11 @@ pnpm install
 
 ### Environment Setup
 
-Both `apps/web` and `apps/tracker` require a `.env` file. You can copy the template from the web app:
+Both `apps/web` and `apps/tracker` require their own `.env` file:
 
 ```bash
 cp apps/web/.env.local.example apps/web/.env
-cp apps/web/.env.local.example apps/tracker/.env
+cp apps/tracker/.env.example apps/tracker/.env
 ```
 
 ### Local Development

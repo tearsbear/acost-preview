@@ -103,6 +103,15 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    const aiModel = process.env.OPENAGENTIC_MODEL;
+    if (!aiModel) {
+      return NextResponse.json({
+        summary: "AI Insights are currently unavailable (model missing).",
+        insights: ["Please configure OPENAGENTIC_MODEL in your environment."],
+        recommendations: [],
+      });
+    }
+
     const prompt = `
 You are the Virtual CTO and Cost Intelligence Expert for "acost". 
 Your goal is to analyze the user's AI workload data and provide a "Profitability Audit".
@@ -148,7 +157,7 @@ Return ONLY a JSON object:
         Authorization: `Bearer ${openaiKey}`,
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4.6",
+        model: aiModel,
         messages: [
           { role: "system", content: "You are a helpful AI cost optimization assistant." },
           { role: "user", content: prompt },

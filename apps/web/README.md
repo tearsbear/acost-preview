@@ -32,4 +32,6 @@ Required keys:
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
+- `OPENAI_API_KEY` (OpenAgentic API key)
+- `OPENAGENTIC_MODEL` (For example, `gemini-3.8-flash-high`)
 - `NEXT_PUBLIC_ACOST_BASE_URL` (Points to the tracker service)

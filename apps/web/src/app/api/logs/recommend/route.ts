@@ -48,6 +48,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const aiModel = process.env.OPENAGENTIC_MODEL;
+    if (!aiModel) {
+      return NextResponse.json(
+        { error: "AI model is not configured" },
+        { status: 503 },
+      );
+    }
+
     const prompt = `
 You are a Senior AI Platform Engineer specializing in Cost & Performance Optimization. 
 Analyze the following single execution log from "acost" and provide a high-impact, actionable recommendation.
@@ -85,7 +93,7 @@ Provide a concise, 2-3 sentence recommendation using this structure:
           Authorization: `Bearer ${openaiKey}`,
         },
         body: JSON.stringify({
-          model: "claude-sonnet-4.6",
+          model: aiModel,
           messages: [
             {
               role: "system",

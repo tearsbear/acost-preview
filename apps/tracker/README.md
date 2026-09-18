@@ -39,6 +39,18 @@ A lightweight, high-performance REST API built with [Hono](https://hono.dev/) fo
 
 ## Local Development
 
+Copy the tracker-specific environment template and populate its values:
+
+```bash
+cp .env.example .env
+```
+
+Required environment variables:
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `INTERNAL_SYNC_SECRET`
+
 ```bash
 pnpm dev
 ```
